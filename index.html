@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Left2Eat</title>
+    <link rel="stylesheet" href="src/styles.css">
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">L2E</div>
+          <div>
+            <h1>Left2Eat</h1>
+            <p>Diario nutricional personal</p>
+          </div>
+        </div>
+
+        <section class="profile-panel" aria-labelledby="profile-title">
+          <div class="section-heading">
+            <p>Perfil</p>
+            <h2 id="profile-title">Mi perfil</h2>
+          </div>
+          <form id="profile-form" class="profile-form"></form>
+        </section>
+
+        <nav id="side-nav" class="side-nav" aria-label="Navegación principal">
+          <button type="button" data-nav="diary">Diario</button>
+          <button type="button" data-nav="foods">Alimentos</button>
+          <button type="button" data-nav="goals">Objetivos</button>
+          <button type="button" data-nav="history">Historial</button>
+        </nav>
+      </aside>
+
+      <main class="main-shell">
+        <header class="topbar">
+          <div class="section-heading day-heading">
+            <div>
+              <p id="day-eyebrow">Hoy</p>
+              <h2 id="day-title">Diario de comidas</h2>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <label class="quick-search">
+              <span class="sr-only">Buscar alimento rápido</span>
+              <input id="quick-food-search" type="search" placeholder="Buscar alimento rápido..." autocomplete="off" list="quick-food-list">
+              <datalist id="quick-food-list"></datalist>
+            </label>
+            <div class="date-actions">
+              <label class="date-field">
+                <span>Día</span>
+                <input id="day-date" type="date">
+              </label>
+              <button id="save-day" class="primary-action" type="button">Registrar día</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="workspace">
+          <section class="day-panel" aria-labelledby="day-title">
+            <div id="day-context" class="day-context"></div>
+            <div id="macro-cards" class="macro-cards"></div>
+
+            <div id="meals" class="meals"></div>
+
+            <section id="food-library" class="food-library" aria-labelledby="library-title">
+              <div class="section-heading compact">
+                <p>Biblioteca</p>
+                <h2 id="library-title">Añadir alimento</h2>
+              </div>
+              <form id="custom-food-form" class="custom-food-form"></form>
+            </section>
+
+            <section class="history-panel" aria-labelledby="history-title">
+              <div class="section-heading compact">
+                <p>Historial</p>
+                <h2 id="history-title">Días registrados</h2>
+              </div>
+              <div id="history"></div>
+            </section>
+          </section>
+
+          <aside class="summary-panel" aria-labelledby="summary-title">
+            <div class="section-heading">
+              <p>Macros</p>
+              <h2 id="summary-title">Panel del día</h2>
+            </div>
+            <div id="macro-summary"></div>
+            <div id="equivalences"></div>
+            <div id="analysis"></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="src/data.js"></script>
+    <script src="src/storage.js"></script>
+    <script src="src/nutrition.js"></script>
+    <script src="src/icons.js"></script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
