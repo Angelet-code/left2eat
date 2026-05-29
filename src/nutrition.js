@@ -122,6 +122,23 @@
     };
   }
 
+  function foodSnapshotFromItem(item) {
+    const snapshot = item?.foodSnapshot;
+    if (!snapshot) return null;
+    const per100 = snapshot.per100 || snapshot.macrosPer100 || snapshot;
+    if (!snapshot.name && !snapshot.foodName && !snapshot.foodNameSnapshot) return null;
+
+    return {
+      id: item.foodId || snapshot.foodId || "snapshot-food",
+      name: snapshot.name || snapshot.foodName || snapshot.foodNameSnapshot,
+      kcal: number(per100.kcal),
+      protein: number(per100.protein),
+      carbs: number(per100.carbs),
+      fat: number(per100.fat),
+      fiber: number(per100.fiber)
+    };
+  }
+
   function zeroMacros() {
     return { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
   }
@@ -144,7 +161,7 @@
     const meals = (day.meals || []).map((meal) => {
       const mealTotal = zeroMacros();
       mealFoods(meal).forEach((item) => {
-        const food = findFoodById(foods, item.foodId);
+        const food = findFoodById(foods, item.foodId) || foodSnapshotFromItem(item);
         if (!food) return;
         addMacros(mealTotal, foodMacros(food, item.grams));
       });
@@ -235,9 +252,24 @@
     const detail = `${formatWithUnit(consumed, meta)} / ${formatNumber(range.min, meta.precision)}-${formatWithUnit(range.max, meta)}`;
 
     if (consumed < range.min) {
+      const missing = range.min - consumed;
+      const progressToRange = range.min > 0 ? consumed / range.min : 0;
+      const almostThreshold = Math.max(150, target * 0.08);
+      let headline = "Queda bastante";
+
+      if (consumed <= 0) {
+        headline = "Empieza el día";
+      } else if (missing <= almostThreshold) {
+        headline = "Casi en rango";
+      } else if (progressToRange >= 0.85) {
+        headline = "Cerca del rango";
+      } else if (progressToRange >= 0.55) {
+        headline = "En progreso";
+      }
+
       return {
-        headline: "Casi en rango",
-        metric: `${formatNumber(range.min - consumed)} kcal para entrar`,
+        headline,
+        metric: `${formatNumber(missing)} kcal para entrar`,
         detail
       };
     }
@@ -402,26 +434,253 @@
     ];
   }
 
+  function foodById(foods, id) {
+    return foods.find((food) => food.id === id);
+  }
+
+  function macroFoodScore(food, macro) {
+    if (macro === "protein") return number(food.protein) * 7 - number(food.fat) * 1.5 - number(food.kcal) / 120;
+    if (macro === "carbs") return number(food.carbs) * 4 + number(food.fiber) * 2 - number(food.fat) * 2;
+    if (macro === "fiber") return number(food.fiber) * 8 - number(food.fat) - number(food.kcal) / 180;
+    if (macro === "light") return number(food.protein) * 2 + number(food.fiber) * 3 - number(food.kcal) / 40 - number(food.fat) * 2;
+    return number(food.kcal) / 25 + number(food.carbs) + number(food.fat) * 2;
+  }
+
+  function rankedFoods(foods, macro, limit = 3) {
+    return [...foods]
+      .filter((food) => macroFoodScore(food, macro) > 0)
+      .sort((a, b) => {
+        const scoreDiff = macroFoodScore(b, macro) - macroFoodScore(a, macro);
+        if (Math.abs(scoreDiff) > 0.1) return scoreDiff;
+        return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
+      })
+      .slice(0, limit);
+  }
+
+  function foodSuggestion(food, reason) {
+    const grams = Math.max(number(food.servingGrams, 100), 1);
+    return {
+      foodId: food.id,
+      name: food.name,
+      grams,
+      reason,
+      label: food.name,
+      detail: `${formatNumber(grams)} g · ${reason}`
+    };
+  }
+
+  function suggestionSet(foods, entries, fallbackMacro, options = {}) {
+    const usedFoodIds = options.usedFoodIds || new Set();
+    const alreadySuggested = new Set();
+    const suggestions = entries
+      .map(([id, reason]) => {
+        if (usedFoodIds.has(id)) return null;
+        const food = foodById(foods, id);
+        if (!food || alreadySuggested.has(food.id)) return null;
+        alreadySuggested.add(food.id);
+        return foodSuggestion(food, reason);
+      })
+      .filter(Boolean);
+
+    rankedFoods(foods.filter((food) => !usedFoodIds.has(food.id)), fallbackMacro, 8).forEach((food) => {
+      if (!alreadySuggested.has(food.id)) {
+        alreadySuggested.add(food.id);
+        suggestions.push(foodSuggestion(food, "opción compatible"));
+      }
+    });
+
+    return suggestions.slice(0, 3);
+  }
+
+  function diagnosisSuggestions(mode, foods, options = {}) {
+    if (mode === "empty") return [];
+
+    const sets = {
+      over: [["cherry-tomato", "volumen ligero"], ["green-garlic", "fibra y volumen"], ["watermelon", "fruta ligera"]],
+      protein: [["turkey", "proteína magra"], ["natural-tuna-drained", "rápido y bajo en grasa"], ["chicken", "proteína magra"], ["fresh-cheese", "proteína simple"], ["whey-protein-scoop", "proteína rápida"]],
+      fiber: [["lentils", "fibra y legumbre"], ["green-garlic", "fibra y volumen"], ["oats", "integral saciante"], ["blueberries", "fruta ligera"]],
+      fat: [["natural-tuna-drained", "proteína magra"], ["cherry-tomato", "volumen ligero"], ["green-garlic", "fibra y volumen"]],
+      energy: [["potato", "carbohidrato medible"], ["pasta", "base energética"], ["rice", "base energética"], ["bread", "refuerzo sencillo"]],
+      carbs: [["potato", "carbohidrato medible"], ["pasta", "base energética"], ["banana", "fruta rápida"], ["gnocchi", "carbohidrato sencillo"]],
+      good: [["green-garlic", "fibra ligera"], ["blueberries", "fruta ligera"], ["natural-tuna-drained", "proteína simple"]]
+    };
+
+    const fallback = {
+      over: "light",
+      protein: "protein",
+      fiber: "fiber",
+      fat: "light",
+      energy: "carbs",
+      carbs: "carbs",
+      good: "light"
+    };
+
+    return suggestionSet(foods, sets[mode] || sets.good, fallback[mode] || "light", options);
+  }
+
+  function finalizeDiagnosis(diagnosis, foods, mode, options = {}) {
+    return {
+      ...diagnosis,
+      suggestions: diagnosisSuggestions(mode, foods, options)
+    };
+  }
+
+  function buildDailyDiagnosis(totals, targets, foods = [], options = {}) {
+    const kcalRange = targetRange("kcal", targets.kcal);
+    const proteinRange = targetRange("protein", targets.protein);
+    const carbsRange = targetRange("carbs", targets.carbs);
+    const fatRange = targetRange("fat", targets.fat);
+    const fiberRange = targetRange("fiber", targets.fiber);
+    const kcalOver = totals.kcal - kcalRange.max;
+    const kcalMissing = kcalRange.min - totals.kcal;
+    const proteinMissing = proteinRange.min - totals.protein;
+    const carbsMissing = carbsRange.min - totals.carbs;
+    const fatOver = totals.fat - fatRange.max;
+    const fiberMissing = fiberRange.min - totals.fiber;
+
+    if (totals.kcal <= 0) {
+      return finalizeDiagnosis({
+        className: "is-neutral",
+        priority: "Sin datos",
+        metric: "Primera comida",
+        title: "Aún no hay suficientes datos para diagnosticar el día.",
+        body: "Añade al menos una comida para ver una recomendación útil.",
+        action: "Registrar primera comida"
+      }, foods, "empty", options);
+    }
+
+    if (kcalOver > 0) {
+      return finalizeDiagnosis({
+        className: "is-warn",
+        priority: "Calorías",
+        metric: `+${formatNumber(kcalOver)} kcal`,
+        title: "Ya estás por encima del rango recomendado.",
+        body: "Mantén el resto del día ligero y evita compensaciones agresivas.",
+        action: "Cerrar día ligero"
+      }, foods, "over", options);
+    }
+
+    if (proteinMissing > 0) {
+      const proteinStarted = totals.protein >= Math.min(30, proteinRange.min * 0.25);
+      return finalizeDiagnosis({
+        className: "is-protein",
+        priority: "Proteína",
+        metric: `${formatNumber(proteinMissing)} g`,
+        title: proteinStarted ? "Proteína empezada; falta completar." : "Falta una fuente de proteína.",
+        body: proteinStarted
+          ? "Ya hay proteína en el día. Completa lo que falta sin repetir por inercia."
+          : "Prioriza una fuente proteica en la próxima comida.",
+        action: proteinStarted ? "Completar proteína" : "Añadir proteína"
+      }, foods, "protein", options);
+    }
+
+    if (fiberMissing >= 10) {
+      return finalizeDiagnosis({
+        className: "is-fiber",
+        priority: "Fibra",
+        metric: `${formatNumber(fiberMissing)} g`,
+        title: "Te falta fibra.",
+        body: "Añade fruta, verdura, legumbre o cereal integral en alguna comida pendiente.",
+        action: "Ajustar próxima comida"
+      }, foods, "fiber", options);
+    }
+
+    if (fatOver > 0) {
+      return finalizeDiagnosis({
+        className: "is-warn",
+        priority: "Grasas",
+        metric: `+${formatNumber(fatOver)} g`,
+        title: "Vas alto en grasas.",
+        body: "En la próxima comida prioriza proteína magra, verduras y carbohidratos sencillos de controlar.",
+        action: "Ajustar próxima comida"
+      }, foods, "fat", options);
+    }
+
+    if (kcalMissing > 150) {
+      return finalizeDiagnosis({
+        className: "is-energy",
+        priority: "Calorías",
+        metric: `${formatNumber(kcalMissing)} kcal`,
+        title: "Te faltan calorías.",
+        body: "Añade una comida completa o refuerza la próxima con carbohidratos y grasas de calidad.",
+        action: "Ajustar próxima comida"
+      }, foods, "energy", options);
+    }
+
+    if (carbsMissing > 20) {
+      return finalizeDiagnosis({
+        className: "is-carbs",
+        priority: "Carbohidratos",
+        metric: `${formatNumber(carbsMissing)} g`,
+        title: "Te estás quedando corto en carbohidratos.",
+        body: "Si aún tienes actividad pendiente, añade una fuente de carbohidratos en la próxima comida.",
+        action: "Añadir carbohidratos"
+      }, foods, "carbs", options);
+    }
+
+    if (fiberMissing > 6) {
+      return finalizeDiagnosis({
+        className: "is-fiber",
+        priority: "Fibra",
+        metric: `${formatNumber(fiberMissing)} g`,
+        title: "Te falta fibra.",
+        body: "Añade fruta, verdura, legumbre o cereal integral en alguna comida pendiente.",
+        action: "Añadir fibra"
+      }, foods, "fiber", options);
+    }
+
+    return finalizeDiagnosis({
+      className: "is-good",
+      priority: "Equilibrio",
+      metric: "En rango",
+      title: "Vas bien encaminado.",
+      body: "Mantén el reparto actual y revisa el cierre del día después de la próxima comida.",
+      action: "Mantener reparto"
+    }, foods, "good", options);
+  }
+
+  function usedFoodIdsFromAggregate(aggregate) {
+    const ids = new Set();
+    (aggregate?.meals || []).forEach((meal) => {
+      mealFoods(meal).forEach((item) => {
+        if (item.foodId) ids.add(item.foodId);
+      });
+    });
+    return ids;
+  }
+
+  function buildSummaryInsights(totals, targets, foods, aggregate = null) {
+    const kcalRange = targetRange("kcal", targets.kcal);
+    const energy = energyRangeStatus(totals.kcal, targets.kcal);
+    const advice = analyzeDailyAdvice(totals, targets);
+    const rangeLeft = remainingToRanges(totals, targets);
+    const activeFoods = foods.filter((food) => !food.deletedAt);
+    const diagnosis = buildDailyDiagnosis(totals, targets, activeFoods, {
+      usedFoodIds: usedFoodIdsFromAggregate(aggregate)
+    });
+
+    return {
+      kcalRange,
+      energy,
+      advice,
+      diagnosis,
+      focus: buildNutritionFocus(totals, targets, energy),
+      rangeLeft,
+      equivalences: buildEquivalences(rangeLeft, activeFoods)
+    };
+  }
+
   function summarizeDay(day, profile, foods) {
     const aggregate = aggregateDay(day, foods);
     const targets = calculateTargets(profile, day);
-    const kcalRange = targetRange("kcal", targets.kcal);
-    const energy = energyRangeStatus(aggregate.total.kcal, targets.kcal);
-    const advice = analyzeDailyAdvice(aggregate.total, targets);
-    const rangeLeft = remainingToRanges(aggregate.total, targets);
-    const activeFoods = foods.filter((food) => !food.deletedAt);
+    const insights = buildSummaryInsights(aggregate.total, targets, foods, aggregate);
 
     return {
       aggregate,
       meals: aggregate.meals,
       total: aggregate.total,
       targets,
-      kcalRange,
-      energy,
-      advice,
-      focus: buildNutritionFocus(aggregate.total, targets, energy),
-      rangeLeft,
-      equivalences: buildEquivalences(rangeLeft, activeFoods)
+      ...insights
     };
   }
 
@@ -430,6 +689,7 @@
     analyzeDailyAdvice,
     aggregateDay,
     buildEquivalences,
+    buildSummaryInsights,
     calculateTargets,
     energyRangeStatus,
     findFoodById,

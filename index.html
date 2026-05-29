@@ -4,6 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Left2Eat</title>
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="src/styles.css">
   </head>
   <body>
@@ -17,42 +21,37 @@
           </div>
         </div>
 
-        <section class="profile-panel" aria-labelledby="profile-title">
-          <div class="section-heading">
-            <p>Perfil</p>
-            <h2 id="profile-title">Mi perfil</h2>
-          </div>
-          <form id="profile-form" class="profile-form"></form>
-        </section>
-
         <nav id="side-nav" class="side-nav" aria-label="Navegación principal">
           <button type="button" data-nav="diary">Diario</button>
           <button type="button" data-nav="foods">Alimentos</button>
           <button type="button" data-nav="goals">Objetivos</button>
           <button type="button" data-nav="history">Historial</button>
         </nav>
+
+        <section class="profile-panel" aria-labelledby="profile-title">
+          <div class="section-heading">
+            <p>Perfil</p>
+            <h2 id="profile-title">Mi perfil</h2>
+          </div>
+          <div id="profile-panel-content" class="profile-panel-content"></div>
+        </section>
       </aside>
 
       <main class="main-shell">
         <header class="topbar">
           <div class="section-heading day-heading">
             <div>
+              <h2 id="day-title">DIARIO DE COMIDAS</h2>
               <p id="day-eyebrow">Hoy</p>
-              <h2 id="day-title">Diario de comidas</h2>
             </div>
           </div>
           <div class="topbar-actions">
-            <label class="quick-search">
-              <span class="sr-only">Buscar alimento rápido</span>
-              <input id="quick-food-search" type="search" placeholder="Buscar alimento rápido..." autocomplete="off" list="quick-food-list">
-              <datalist id="quick-food-list"></datalist>
-            </label>
             <div class="date-actions">
               <label class="date-field">
                 <span>Día</span>
                 <input id="day-date" type="date">
               </label>
-              <button id="save-day" class="primary-action" type="button">Registrar día</button>
+              <button id="save-day" class="primary-action" type="button">Guardar y limpiar</button>
             </div>
           </div>
         </header>
@@ -60,16 +59,16 @@
         <div class="workspace">
           <section class="day-panel" aria-labelledby="day-title">
             <div id="day-context" class="day-context"></div>
-            <div id="macro-cards" class="macro-cards"></div>
 
-            <div id="meals" class="meals"></div>
+            <section class="meal-workbench" aria-labelledby="meals-title">
+              <h2 id="meals-title" class="sr-only">Comidas</h2>
+              <label class="quick-search">
+                <span class="sr-only">Buscar alimento rápido</span>
+                <input id="quick-food-search" type="search" placeholder="Buscar alimento rápido..." autocomplete="off" list="quick-food-list">
+                <datalist id="quick-food-list"></datalist>
+              </label>
 
-            <section id="food-library" class="food-library" aria-labelledby="library-title">
-              <div class="section-heading compact">
-                <p>Biblioteca</p>
-                <h2 id="library-title">Añadir alimento</h2>
-              </div>
-              <form id="custom-food-form" class="custom-food-form"></form>
+              <div id="meals" class="meals"></div>
             </section>
 
             <section class="history-panel" aria-labelledby="history-title">
@@ -79,16 +78,32 @@
               </div>
               <div id="history"></div>
             </section>
+
+            <section class="day-insights" aria-labelledby="insights-title">
+              <div class="section-heading compact">
+                <p>Ideas</p>
+                <h2 id="insights-title">Equivalencias y media</h2>
+              </div>
+              <div class="insights-grid">
+                <div id="equivalences"></div>
+                <div id="analysis"></div>
+              </div>
+            </section>
+
+            <section id="profile-editor" class="profile-editor-view" aria-labelledby="profile-editor-title" hidden></section>
+
+            <section id="food-library" class="food-library" aria-labelledby="library-title">
+              <div class="section-heading compact">
+                <p>Biblioteca</p>
+                <h2 id="library-title">Añadir alimento</h2>
+              </div>
+              <form id="custom-food-form" class="custom-food-form"></form>
+            </section>
           </section>
 
-          <aside class="summary-panel" aria-labelledby="summary-title">
-            <div class="section-heading">
-              <p>Macros</p>
-              <h2 id="summary-title">Panel del día</h2>
-            </div>
+          <aside class="summary-panel" aria-label="Guía del día">
+            <div id="macro-cards" class="macro-cards"></div>
             <div id="macro-summary"></div>
-            <div id="equivalences"></div>
-            <div id="analysis"></div>
           </aside>
         </div>
       </main>
@@ -100,6 +115,7 @@
     <script src="src/storage.js"></script>
     <script src="src/nutrition.js"></script>
     <script src="src/icons.js"></script>
+    <script src="src/diagnosis-actions.js"></script>
     <script src="src/app.js"></script>
   </body>
 </html>

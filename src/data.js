@@ -29,8 +29,7 @@
   const TRAINING_TYPES = [
     { id: "none", label: "Sin entreno" },
     { id: "strength", label: "Fuerza" },
-    { id: "cardio", label: "Cardio" },
-    { id: "mixed", label: "Mixto" }
+    { id: "cardio", label: "Cardio" }
   ];
 
   const INTENSITY_LEVELS = [
@@ -65,6 +64,38 @@
       fiber: 0,
       servingLabel: "filete",
       servingGrams: 160
+    },
+    {
+      id: "air-fryer-chicken-leg-bone-skin",
+      name: "Muslo entero de pollo air fryer (con hueso y piel)",
+      aliases: [
+        "muslo",
+        "muslo de pollo",
+        "muslo entero",
+        "muslo entero de pollo",
+        "cuarto trasero",
+        "cuarto trasero de pollo",
+        "pollo air fryer"
+      ],
+      kcal: 77,
+      protein: 10.1,
+      carbs: 0,
+      fat: 3.8,
+      fiber: 0,
+      servingLabel: "muslo",
+      servingGrams: 417
+    },
+    {
+      id: "air-fryer-chicken-wing-bone-skin",
+      name: "Alita de pollo air fryer (con hueso y piel)",
+      aliases: ["alita", "alita de pollo", "alitas", "alitas de pollo", "pollo air fryer"],
+      kcal: 86,
+      protein: 8.1,
+      carbs: 0,
+      fat: 5.7,
+      fiber: 0,
+      servingLabel: "alita",
+      servingGrams: 127
     },
     {
       id: "turkey",
@@ -103,6 +134,18 @@
       servingGrams: 60
     },
     {
+      id: "green-garlic",
+      name: "Ajitos tiernos",
+      aliases: ["ajitos tiernos", "ajos tiernos", "ajetes", "ajete", "ajo tierno", "brotes de ajo"],
+      kcal: 37,
+      protein: 1.9,
+      carbs: 4.7,
+      fat: 0.3,
+      fiber: 3.8,
+      servingLabel: "ración",
+      servingGrams: 100
+    },
+    {
       id: "gnocchi",
       name: "Ñoquis",
       aliases: ["ñoquis", "gnocchi", "gnocchis"],
@@ -117,7 +160,7 @@
     {
       id: "potato",
       name: "Patata cocida",
-      aliases: ["patata", "patatas", "papa", "papas", "patata cocida"],
+      aliases: ["patata", "patatas", "papa", "papas", "patata cocida", "patatas cocidas", "patata hervida", "patatas hervidas"],
       kcal: 87,
       protein: 1.9,
       carbs: 20,

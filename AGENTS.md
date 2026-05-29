@@ -19,6 +19,7 @@ Servidor por defecto: `http://127.0.0.1:5174/index.html`.
 - `src/storage.js`: persistencia en `localStorage`.
 - `src/nutrition.js`: calculos nutricionales, resumen diario, rangos, equivalencias y recomendaciones.
 - `src/icons.js`: iconos SVG inline.
+- `src/diagnosis-actions.js`: acciones derivadas del diagnostico que convierten sugerencias en items normales y permiten validacion local sin navegador.
 - `src/app.js`: estado UI, renderizado, eventos y persistencia.
 - `src/styles.css`: sistema visual y responsive.
 
@@ -57,7 +58,14 @@ node --check src/data.js
 node --check src/storage.js
 node --check src/nutrition.js
 node --check src/icons.js
+node --check src/diagnosis-actions.js
 node --check src/app.js
+node scripts/validate-project-structure.mjs
+node scripts/validate-css-structure.mjs
+node scripts/validate-ui-contracts.mjs
+node scripts/validate-food-combinations.mjs
+node scripts/validate-diagnosis-flow.mjs
+node scripts/validate-storage-history-snapshots.mjs
 ```
 
 Checks manuales recomendados:

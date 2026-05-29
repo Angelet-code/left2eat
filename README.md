@@ -9,8 +9,16 @@ App web local para registrar comidas diarias, calcular macros en tiempo real y g
 - `src/storage.js`: estado persistente con `localStorage` usando la clave `left-eat-state-v1`.
 - `src/nutrition.js`: calculo nutricional, resumen diario, rangos, equivalencias, recomendaciones y busqueda de alimentos.
 - `src/icons.js`: iconos SVG inline reutilizables.
+- `src/diagnosis-actions.js`: acciones puras del diagnostico para insertar sugerencias como items normales y validarlas sin navegador.
 - `src/app.js`: orquestacion de estado UI, renderizado, eventos y persistencia.
 - `src/styles.css`: layout responsive y sistema visual.
+- `scripts/validate-project-structure.mjs`: validacion local de higiene estructural y artefactos generados.
+- `scripts/report-css-structure.mjs`: inventario de capas y selectores CSS repetidos para planificar limpiezas acotadas.
+- `scripts/validate-css-structure.mjs`: validacion local de contratos estructurales del CSS.
+- `scripts/validate-food-combinations.mjs`: validacion local de recomendaciones por combinacion culinaria.
+- `scripts/validate-diagnosis-flow.mjs`: validacion local del flujo de sugerencias y deshacer.
+- `scripts/validate-storage-history-snapshots.mjs`: validacion local del contrato de storage, historial y snapshots.
+- `scripts/validate-ui-contracts.mjs`: validacion local de contratos de UI que no deben volver a romperse.
 
 ## Modelo De Dominio
 
@@ -41,7 +49,14 @@ node --check src/data.js
 node --check src/storage.js
 node --check src/nutrition.js
 node --check src/icons.js
+node --check src/diagnosis-actions.js
 node --check src/app.js
+node scripts/validate-project-structure.mjs
+node scripts/validate-css-structure.mjs
+node scripts/validate-ui-contracts.mjs
+node scripts/validate-food-combinations.mjs
+node scripts/validate-diagnosis-flow.mjs
+node scripts/validate-storage-history-snapshots.mjs
 ```
 
 ## Proximas Mejoras Naturales
