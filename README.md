@@ -6,11 +6,18 @@ App web local para registrar comidas diarias, calcular macros en tiempo real y g
 
 - `index.html`: pantalla principal de la app y carga ordenada de modulos.
 - `src/data.js`: alimentos base, objetivos, niveles de actividad y listas auxiliares.
+- `src/meal-items.js`: helper compartido para leer y canonicalizar alimentos de comidas en `meal.items`.
 - `src/storage.js`: estado persistente con `localStorage` usando la clave `left-eat-state-v1`.
 - `src/nutrition.js`: calculo nutricional, resumen diario, rangos, equivalencias, recomendaciones y busqueda de alimentos.
+- `src/food-combinations.js`: reglas puras de combinaciones culinarias y ranking por historial/plantillas.
 - `src/icons.js`: iconos SVG inline reutilizables.
+- `src/render-utils.js`: utilidades compartidas de render, formato, sprites e iconos.
+- `src/profile-render.js`: render puro de perfil y editor de perfil.
+- `src/food-library-render.js`: render puro de biblioteca de alimentos.
+- `src/history-render.js`: render puro de historial y analisis.
+- `src/diary-render.js`: render puro del diario, comidas, guia derecha y equivalencias.
 - `src/diagnosis-actions.js`: acciones puras del diagnostico para insertar sugerencias como items normales y validarlas sin navegador.
-- `src/app.js`: orquestacion de estado UI, renderizado, eventos y persistencia.
+- `src/app.js`: orquestacion de estado UI, eventos, persistencia, undo, confirmaciones y ensamblado de datos para render.
 - `src/styles.css`: layout responsive y sistema visual.
 - `scripts/validate-project-structure.mjs`: validacion local de higiene estructural y artefactos generados.
 - `scripts/report-css-structure.mjs`: inventario de capas y selectores CSS repetidos para planificar limpiezas acotadas.
@@ -52,9 +59,16 @@ Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js
+node --check src/meal-items.js
 node --check src/storage.js
 node --check src/nutrition.js
+node --check src/food-combinations.js
 node --check src/icons.js
+node --check src/render-utils.js
+node --check src/profile-render.js
+node --check src/food-library-render.js
+node --check src/history-render.js
+node --check src/diary-render.js
 node --check src/diagnosis-actions.js
 node --check src/app.js
 node scripts/validate-project-structure.mjs

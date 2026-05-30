@@ -271,6 +271,7 @@ Este backlog sustituye al orden inicial de prioridades. Es una guia operativa, n
 
 - Historial confiable y cierre de dia: mantener y vigilar regresiones.
 - Auditoria estructural inicial: mantener higiene de proyecto con `scripts/validate-project-structure.mjs`, `.gitignore` cubriendo logs/reportes y sin artefactos generados al cerrar ciclos.
+- Hoja de ruta estructural fases 1-6 cerrada: `validate-all`, helpers de `meal.items`, combinaciones puras, renderizadores extraidos, CSS consolidado con `scripts/report-css-structure.mjs` y confirmaciones destructivas con dialogo propio.
 
 ### En Revision
 
@@ -279,7 +280,7 @@ Estas areas ya tienen senales de implementacion en el codigo. Antes de elegirlas
 - Snapshots minimos de dias guardados.
 - Plantillas de comidas tolerantes a alimentos editados u ocultos.
 - Seguridad de interaccion: deshacer, feedback y recuperacion.
-- Deuda estructural de frontend: `src/styles.css` y `src/app.js` han crecido mucho. Ya existe inventario CSS con `scripts/report-css-structure.mjs`; usarlo para eliminar capas historicas verificables en ciclos pequenos. Despues valorar extraccion de sprites/render helpers si no rompe orden de carga.
+- Regresiones posibles tras la limpieza estructural: revisar especialmente orden de carga de scripts, `meal.items`, confirmaciones async y responsive cuando se toque frontend.
 
 ### Siguiente
 
@@ -311,9 +312,16 @@ Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js
+node --check src/meal-items.js
 node --check src/storage.js
 node --check src/nutrition.js
+node --check src/food-combinations.js
 node --check src/icons.js
+node --check src/render-utils.js
+node --check src/profile-render.js
+node --check src/food-library-render.js
+node --check src/history-render.js
+node --check src/diary-render.js
 node --check src/diagnosis-actions.js
 node --check src/app.js
 node scripts/validate-project-structure.mjs
@@ -337,6 +345,17 @@ Cuando sea posible, validar en navegador local:
 - Responsive sin overflow horizontal.
 
 Si el navegador no puede abrirse, documentar la limitacion y cubrir con checks estaticos y revision de flujo en codigo.
+
+### Protocolo QA Visual Frontend
+
+Para cualquier cambio que toque UI, estilos o interaccion:
+
+- Levantar `node dev-server.mjs` y abrir `http://127.0.0.1:5174/index.html`.
+- Revisar consola del navegador antes y despues del flujo afectado.
+- Probar el flujo modificado completo, incluyendo cancelar y confirmar si hay acciones destructivas.
+- Verificar que `deshacer` sigue disponible cuando el flujo destructivo lo promete.
+- Revisar desktop estrecho y movil sin overflow horizontal ni controles cortados.
+- Si no se puede usar navegador local, dejar la limitacion en el reporte y cubrir con validacion estatica mas revision del flujo en codigo.
 
 ## Formato De Reporte
 

@@ -2,8 +2,22 @@
   const Storage = window.LeftEatStorage;
   const Nutrition = window.LeftEatNutrition;
   const Data = window.LeftEatData;
-  const Icons = window.LeftEatIcons;
+  const MealItems = window.LeftEatMealItems;
   const DiagnosisActions = window.LeftEatDiagnosisActions;
+  const FoodCombinations = window.LeftEatFoodCombinations;
+  const RenderUtils = window.LeftEatRenderUtils;
+  const ProfileRenderers = window.LeftEatProfileRenderers;
+  const FoodLibraryRenderers = window.LeftEatFoodLibraryRenderers;
+  const HistoryRenderers = window.LeftEatHistoryRenderers;
+  const DiaryRenderers = window.LeftEatDiaryRenderers;
+  const {
+    escapeHtml,
+    formatDate,
+    formatMacro,
+    hasProfileAvatar,
+    profileAvatarId,
+    sortFoods
+  } = RenderUtils;
 
   let state = Storage.load();
   const uiState = {
@@ -46,334 +60,6 @@
     toast: document.getElementById("toast")
   };
 
-  const PROFILE_PIXEL_AVATARS = [
-    { id: "male", label: "Bosque" },
-    { id: "female", label: "Cobre" },
-    { id: "bald-beard", label: "Barba" },
-    { id: "curly", label: "Rizos" },
-    { id: "bob", label: "Noche" },
-    { id: "ponytail", label: "Brisa" },
-    { id: "cap", label: "Gorra" },
-    { id: "silver", label: "Plata" }
-  ];
-
-  const PROFILE_PIXEL_SPRITES = {
-    male: [
-      [20, 9, 24, 4, "#2d251f"], [16, 13, 32, 8, "#3c3128"], [18, 21, 28, 5, "#2d251f"],
-      [20, 18, 24, 21, "#e9ad82"], [16, 25, 4, 8, "#c98461"], [44, 25, 4, 8, "#c98461"],
-      [23, 27, 4, 4, "#1f2738"], [37, 27, 4, 4, "#1f2738"], [30, 32, 4, 3, "#c98461"], [27, 36, 10, 3, "#8d4a3f"],
-      [24, 40, 16, 5, "#e9ad82"], [16, 44, 32, 16, "#2f8c68"], [20, 44, 24, 5, "#91dfb6"],
-      [24, 49, 16, 11, "#234f46"], [12, 50, 8, 10, "#2f8c68"], [44, 50, 8, 10, "#2f8c68"], [19, 60, 26, 2, "#263247"]
-    ],
-    female: [
-      [19, 8, 26, 5, "#8d452a"], [15, 13, 34, 10, "#b65f36"], [13, 23, 38, 19, "#8d452a"],
-      [16, 41, 7, 10, "#6d351f"], [41, 41, 7, 10, "#6d351f"],
-      [20, 17, 24, 22, "#f0b889"], [17, 25, 3, 8, "#d7926c"], [44, 25, 3, 8, "#d7926c"],
-      [23, 28, 4, 4, "#243044"], [37, 28, 4, 4, "#243044"], [30, 33, 4, 3, "#d7926c"], [27, 37, 10, 3, "#a6424f"],
-      [24, 41, 16, 4, "#f0b889"], [16, 45, 32, 15, "#25a7a0"], [21, 45, 22, 5, "#ffe28a"],
-      [26, 49, 12, 11, "#ffefc4"], [12, 50, 8, 10, "#25a7a0"], [44, 50, 8, 10, "#25a7a0"], [19, 60, 26, 2, "#263247"]
-    ],
-    "bald-beard": [
-      [22, 10, 20, 5, "#f0be92"], [18, 15, 28, 22, "#f0be92"], [16, 23, 4, 9, "#d59a72"], [44, 23, 4, 9, "#d59a72"],
-      [24, 26, 4, 4, "#1f2738"], [36, 26, 4, 4, "#1f2738"], [30, 31, 4, 3, "#c98461"],
-      [22, 34, 20, 5, "#6a3b2b"], [20, 38, 24, 9, "#4a2b22"], [25, 42, 14, 4, "#6a3b2b"],
-      [25, 47, 14, 4, "#f0be92"], [14, 49, 36, 11, "#5d6b3a"], [20, 49, 24, 5, "#9aa86b"],
-      [25, 52, 14, 8, "#e8dfc5"], [11, 53, 8, 7, "#5d6b3a"], [45, 53, 8, 7, "#5d6b3a"], [18, 60, 28, 2, "#263247"]
-    ],
-    curly: [
-      [18, 8, 6, 6, "#241b1c"], [24, 6, 7, 7, "#3a2b2d"], [32, 6, 7, 7, "#241b1c"], [40, 9, 6, 6, "#3a2b2d"],
-      [14, 14, 36, 12, "#2e2225"], [18, 24, 28, 6, "#241b1c"], [20, 18, 24, 22, "#d99a73"],
-      [16, 25, 4, 8, "#bd775a"], [44, 25, 4, 8, "#bd775a"], [23, 28, 4, 4, "#1f2738"], [37, 28, 4, 4, "#1f2738"],
-      [30, 33, 4, 3, "#bd775a"], [27, 37, 10, 3, "#8e3d3d"], [24, 41, 16, 4, "#d99a73"],
-      [16, 45, 32, 15, "#f28b3c"], [22, 45, 20, 5, "#ffd15c"], [12, 51, 8, 9, "#f28b3c"], [44, 51, 8, 9, "#f28b3c"], [18, 60, 28, 2, "#263247"]
-    ],
-    bob: [
-      [17, 8, 30, 5, "#171f2c"], [13, 13, 38, 11, "#243044"], [12, 24, 40, 21, "#171f2c"],
-      [16, 44, 8, 9, "#111827"], [40, 44, 8, 9, "#111827"], [20, 18, 24, 22, "#e6a77e"],
-      [18, 25, 3, 8, "#c98461"], [43, 25, 3, 8, "#c98461"], [24, 28, 4, 4, "#243044"], [36, 28, 4, 4, "#243044"],
-      [30, 33, 4, 3, "#c98461"], [27, 37, 10, 3, "#884155"], [24, 41, 16, 4, "#e6a77e"],
-      [15, 45, 34, 15, "#7866d8"], [21, 45, 22, 4, "#dcd7ff"], [26, 49, 12, 11, "#f7eddc"],
-      [11, 52, 8, 8, "#7866d8"], [45, 52, 8, 8, "#7866d8"], [18, 60, 28, 2, "#263247"]
-    ],
-    ponytail: [
-      [20, 8, 24, 4, "#d7a135"], [16, 12, 32, 9, "#e5b64a"], [13, 20, 12, 17, "#b98027"], [39, 20, 12, 17, "#b98027"],
-      [46, 20, 8, 18, "#d7a135"], [20, 17, 24, 22, "#efbd91"], [16, 25, 4, 8, "#d99a72"], [44, 25, 4, 8, "#d99a72"],
-      [24, 28, 4, 4, "#263247"], [36, 28, 4, 4, "#263247"], [30, 33, 4, 3, "#d99a72"], [27, 37, 10, 3, "#a64155"],
-      [24, 41, 16, 4, "#efbd91"], [16, 45, 32, 15, "#3f7fd9"], [21, 45, 22, 4, "#bfe8ff"],
-      [26, 49, 12, 11, "#fff1c8"], [12, 51, 8, 9, "#3f7fd9"], [44, 51, 8, 9, "#3f7fd9"], [18, 60, 28, 2, "#263247"]
-    ],
-    cap: [
-      [16, 8, 34, 5, "#e85b54"], [12, 13, 40, 8, "#e85b54"], [20, 10, 18, 3, "#fff2c6"], [44, 16, 10, 4, "#b83d38"],
-      [18, 21, 28, 5, "#4a2c24"], [20, 20, 24, 20, "#d99a73"], [16, 26, 4, 7, "#bd775a"], [44, 26, 4, 7, "#bd775a"],
-      [24, 28, 4, 4, "#1f2738"], [36, 28, 4, 4, "#1f2738"], [30, 33, 4, 3, "#bd775a"], [27, 37, 10, 3, "#884155"],
-      [24, 41, 16, 4, "#d99a73"], [14, 45, 36, 15, "#2f6fe4"], [20, 45, 24, 5, "#8bd3ff"],
-      [25, 49, 14, 11, "#fff5df"], [10, 52, 9, 8, "#2f6fe4"], [45, 52, 9, 8, "#2f6fe4"], [18, 60, 28, 2, "#263247"]
-    ],
-    silver: [
-      [18, 8, 28, 5, "#cbd5e1"], [14, 13, 36, 9, "#94a3b8"], [18, 22, 28, 5, "#64748b"],
-      [20, 18, 24, 22, "#e8b28a"], [16, 25, 4, 8, "#c98461"], [44, 25, 4, 8, "#c98461"],
-      [22, 27, 8, 5, "#263247"], [34, 27, 8, 5, "#263247"], [30, 29, 4, 1, "#263247"],
-      [24, 28, 4, 3, "#dce7f5"], [36, 28, 4, 3, "#dce7f5"], [30, 33, 4, 3, "#c98461"], [27, 37, 10, 3, "#7f3e52"],
-      [24, 41, 16, 4, "#e8b28a"], [14, 45, 36, 15, "#713f8f"], [20, 45, 24, 5, "#ffd166"],
-      [26, 49, 12, 11, "#f8efd6"], [10, 52, 9, 8, "#713f8f"], [45, 52, 9, 8, "#713f8f"], [18, 60, 28, 2, "#263247"]
-    ]
-  };
-
-  const FOOD_PIXEL_SPRITES = {
-    "generic-food": [
-      [9, 8, 14, 3, "#6b4a2d"], [7, 11, 18, 10, "#f2d18a"], [9, 21, 14, 4, "#c58a48"],
-      [11, 13, 4, 3, "#fff2b6"], [17, 15, 3, 2, "#a55e31"], [13, 19, 7, 2, "#fff2b6"]
-    ],
-    "generic-protein": [
-      [7, 11, 18, 2, "#7c3b2d"], [6, 13, 20, 9, "#d9895b"], [8, 22, 16, 3, "#9b4c35"],
-      [11, 15, 4, 2, "#ffd4a3"], [17, 17, 5, 2, "#ffd4a3"]
-    ],
-    "generic-carb": [
-      [8, 10, 16, 3, "#7b5628"], [6, 13, 20, 12, "#e5bd66"], [9, 25, 14, 3, "#a87435"],
-      [11, 16, 3, 2, "#fff0a8"], [17, 20, 5, 2, "#fff0a8"]
-    ],
-    "generic-fat": [
-      [12, 6, 8, 3, "#6b4a2d"], [10, 9, 12, 16, "#d9b05f"], [11, 25, 10, 3, "#8a5f2b"],
-      [13, 12, 6, 10, "#f8d77a"]
-    ],
-    salmon: [
-      [8, 9, 15, 3, "#7b2d22"], [6, 12, 21, 11, "#f26a3d"], [8, 23, 16, 3, "#b43d2d"],
-      [10, 13, 12, 2, "#ffd2a6"], [9, 17, 15, 2, "#ffe1bd"], [12, 21, 9, 2, "#ffb070"],
-      [23, 13, 4, 8, "#ff9a54"]
-    ],
-    chicken: [
-      [8, 10, 16, 3, "#9c5a3c"], [6, 13, 19, 9, "#f0b184"], [8, 22, 15, 4, "#c77752"],
-      [11, 15, 4, 2, "#ffe1bd"], [17, 18, 4, 2, "#ffe1bd"], [22, 13, 4, 5, "#d08a61"]
-    ],
-    "air-fryer-chicken-leg-bone-skin": [
-      [7, 10, 14, 12, "#c16d3d"], [10, 8, 11, 5, "#e29b61"], [18, 19, 5, 4, "#9c4f2b"],
-      [20, 21, 7, 3, "#efe4ce"], [26, 20, 3, 5, "#efe4ce"], [11, 13, 4, 2, "#f1bd7a"]
-    ],
-    "air-fryer-chicken-wing-bone-skin": [
-      [7, 12, 14, 7, "#c56d3d"], [13, 18, 12, 5, "#e1995a"], [21, 14, 5, 8, "#8f4828"],
-      [6, 19, 5, 3, "#efe4ce"], [4, 18, 3, 5, "#efe4ce"], [10, 14, 4, 2, "#f4c184"]
-    ],
-    turkey: [
-      [8, 11, 16, 3, "#8c5b3b"], [6, 14, 20, 8, "#e8b58a"], [9, 22, 14, 3, "#b47a54"],
-      [11, 16, 12, 2, "#fff0cf"], [12, 19, 8, 2, "#fff0cf"]
-    ],
-    "natural-tuna-drained": [
-      [9, 8, 14, 3, "#4b5b6b"], [7, 11, 18, 14, "#9bb5c7"], [9, 25, 14, 3, "#536b7c"],
-      [10, 13, 12, 3, "#d8eef7"], [11, 18, 10, 4, "#7da0b5"], [22, 12, 3, 12, "#334453"]
-    ],
-    egg: [
-      [12, 7, 8, 3, "#d4c9b8"], [9, 10, 14, 15, "#fff8e8"], [11, 25, 10, 3, "#d4c9b8"],
-      [13, 15, 6, 6, "#f5bf35"], [14, 16, 4, 4, "#ffd95c"]
-    ],
-    "green-garlic": [
-      [15, 4, 3, 21, "#3e8f45"], [18, 6, 3, 18, "#55b957"], [12, 8, 3, 17, "#62c66b"],
-      [9, 5, 4, 3, "#7ad47d"], [8, 8, 5, 2, "#4ba24d"], [19, 4, 5, 3, "#8be087"],
-      [21, 8, 4, 2, "#55b957"], [5, 14, 7, 3, "#6ecf73"], [21, 15, 6, 3, "#69c96e"],
-      [10, 25, 13, 3, "#f4efe1"], [11, 28, 11, 2, "#d8cdb1"], [13, 26, 2, 2, "#ffffff"],
-      [17, 26, 2, 2, "#ffffff"], [20, 26, 2, 2, "#ffffff"]
-    ],
-    gnocchi: [
-      [8, 12, 5, 4, "#f6ddb2"], [15, 10, 5, 4, "#f9e6c5"], [21, 13, 5, 4, "#e9c99d"],
-      [10, 18, 5, 4, "#e9c99d"], [17, 19, 5, 4, "#f6ddb2"], [23, 18, 4, 4, "#f9e6c5"],
-      [7, 23, 19, 3, "#9c6a39"]
-    ],
-    potato: [
-      [10, 9, 12, 2, "#8a5a2b"], [7, 11, 18, 4, "#b87936"], [6, 15, 20, 8, "#d39a4b"],
-      [8, 23, 16, 4, "#b87936"], [11, 27, 10, 2, "#8a5a2b"], [10, 13, 3, 2, "#f2c270"],
-      [18, 14, 2, 2, "#7a4d27"], [13, 18, 2, 2, "#8a5a2b"], [21, 20, 2, 2, "#f2c270"],
-      [8, 18, 2, 2, "#7a4d27"], [15, 23, 3, 2, "#f5d084"]
-    ],
-    rice: [
-      [8, 20, 16, 5, "#6f8fa8"], [6, 16, 20, 6, "#eff7fb"], [9, 13, 14, 5, "#ffffff"],
-      [10, 11, 3, 2, "#d7e8ef"], [14, 10, 3, 2, "#d7e8ef"], [18, 11, 3, 2, "#d7e8ef"],
-      [22, 13, 3, 2, "#d7e8ef"]
-    ],
-    pasta: [
-      [7, 13, 18, 3, "#eac15f"], [6, 17, 20, 3, "#f0d176"], [8, 21, 17, 3, "#c99039"],
-      [10, 11, 3, 11, "#f4d879"], [15, 12, 3, 11, "#f4d879"], [20, 12, 3, 10, "#f4d879"]
-    ],
-    bread: [
-      [9, 9, 14, 4, "#8f5b2c"], [7, 13, 18, 11, "#d89d58"], [9, 24, 14, 3, "#a66a34"],
-      [11, 15, 10, 6, "#f2c478"], [13, 17, 2, 2, "#fff1ba"], [18, 16, 2, 2, "#fff1ba"]
-    ],
-    oats: [
-      [8, 20, 16, 5, "#7c9bb1"], [6, 15, 20, 7, "#f0ddb0"], [9, 12, 14, 5, "#e5c98d"],
-      [11, 14, 3, 2, "#b58445"], [16, 13, 3, 2, "#b58445"], [21, 15, 2, 2, "#b58445"]
-    ],
-    "muesli-crunchy-zero": [
-      [7, 20, 18, 5, "#8fa7ba"], [6, 15, 20, 7, "#f2d58a"], [9, 12, 5, 4, "#9b6a35"],
-      [16, 11, 4, 4, "#cf8a32"], [21, 13, 4, 4, "#7f5a31"], [12, 17, 3, 2, "#fff3b0"]
-    ],
-    "oat-crunchy-rings": [
-      [8, 12, 5, 5, "#d8a94f"], [16, 10, 5, 5, "#e6bf65"], [22, 15, 5, 5, "#c18d3d"],
-      [10, 20, 5, 5, "#e6bf65"], [17, 21, 5, 5, "#d8a94f"], [9, 25, 16, 2, "#8a6a3e"]
-    ],
-    banana: [
-      [8, 17, 3, 5, "#7a5a1f"], [10, 14, 5, 8, "#f4c63c"], [14, 12, 5, 10, "#ffe36c"],
-      [19, 11, 5, 9, "#f4c63c"], [23, 10, 3, 5, "#7a5a1f"], [12, 21, 10, 3, "#d8a827"]
-    ],
-    blueberries: [
-      [9, 12, 6, 6, "#4156b3"], [17, 10, 7, 7, "#5269d7"], [13, 18, 7, 7, "#31449b"],
-      [21, 19, 5, 5, "#4156b3"], [11, 14, 2, 2, "#b9c7ff"], [19, 12, 2, 2, "#b9c7ff"]
-    ],
-    watermelon: [
-      [6, 20, 21, 4, "#347a44"], [7, 16, 20, 4, "#8dd167"], [8, 10, 18, 8, "#f05a67"],
-      [11, 13, 2, 2, "#2b1b22"], [17, 12, 2, 2, "#2b1b22"], [22, 15, 2, 2, "#2b1b22"]
-    ],
-    melon: [
-      [8, 10, 17, 3, "#6a9d48"], [6, 13, 20, 10, "#bce177"], [8, 23, 16, 3, "#6a9d48"],
-      [11, 15, 12, 5, "#f4efb8"], [13, 17, 2, 2, "#d5bf55"], [18, 16, 2, 2, "#d5bf55"]
-    ],
-    "greek-yogurt": [
-      [10, 7, 12, 3, "#5c6f85"], [8, 10, 16, 15, "#dcefff"], [10, 25, 12, 3, "#8ba5bb"],
-      [11, 13, 10, 8, "#ffffff"], [12, 12, 8, 2, "#b8d4e5"], [15, 16, 3, 2, "#e6f7ff"]
-    ],
-    lentils: [
-      [7, 20, 18, 5, "#72503a"], [6, 15, 20, 7, "#b57645"], [9, 12, 4, 4, "#7b4e32"],
-      [15, 13, 4, 4, "#6e452c"], [21, 12, 4, 4, "#8a5b38"], [11, 17, 12, 3, "#c58a53"]
-    ],
-    "cherry-tomato": [
-      [14, 6, 4, 3, "#2f8d45"], [11, 8, 10, 3, "#45b85a"], [8, 11, 16, 3, "#c91f2e"],
-      [6, 14, 20, 8, "#ef3f3f"], [8, 22, 16, 4, "#c91f2e"], [11, 26, 10, 2, "#8f1f2c"],
-      [10, 13, 4, 3, "#ff7a65"], [15, 15, 2, 2, "#ffb0a0"], [20, 18, 3, 2, "#9f1f2e"],
-      [9, 20, 3, 2, "#d82e38"], [17, 10, 3, 2, "#2f8d45"]
-    ],
-    "olive-oil": [
-      [13, 5, 6, 3, "#566a3a"], [11, 8, 10, 4, "#6f8c43"], [10, 12, 12, 15, "#b7c84c"],
-      [12, 15, 8, 9, "#f0d35b"], [11, 27, 10, 2, "#596f38"], [14, 9, 4, 2, "#e5f18b"]
-    ],
-    "peanut-butter": [
-      [10, 7, 12, 3, "#5a3f2b"], [8, 10, 16, 15, "#c3823b"], [10, 25, 12, 3, "#6b4a2d"],
-      [11, 13, 10, 7, "#e0a95c"], [13, 15, 6, 2, "#f5cc85"], [16, 21, 4, 2, "#8a572a"]
-    ],
-    avocado: [
-      [10, 8, 12, 3, "#2f6e3f"], [7, 11, 18, 13, "#4da85a"], [9, 24, 14, 3, "#2f6e3f"],
-      [11, 13, 10, 9, "#c9e77a"], [14, 16, 5, 5, "#8a5a2b"], [15, 17, 3, 3, "#5f3a21"]
-    ],
-    "fresh-cheese": [
-      [8, 11, 18, 3, "#b8c9d6"], [7, 14, 20, 10, "#f5fbff"], [9, 24, 16, 3, "#b8c9d6"],
-      [10, 16, 14, 2, "#dcebf4"], [12, 20, 4, 2, "#ffffff"], [18, 19, 4, 2, "#ffffff"]
-    ],
-    "whey-protein-scoop": [
-      [10, 14, 14, 4, "#8b6dff"], [8, 18, 18, 7, "#c9bbff"], [11, 25, 12, 3, "#6d55d2"],
-      [17, 10, 8, 3, "#6d55d2"], [23, 12, 3, 8, "#6d55d2"], [11, 20, 10, 2, "#efeaff"]
-    ],
-    "mahon-cheese": [
-      [7, 12, 18, 3, "#a66b1f"], [6, 15, 20, 10, "#f0c04f"], [9, 25, 16, 3, "#b87a25"],
-      [11, 17, 3, 3, "#ffe08a"], [17, 19, 2, 2, "#b87a25"], [22, 16, 2, 2, "#ffe08a"]
-    ],
-    "roquefort-cheese": [
-      [7, 12, 18, 3, "#8a8f7a"], [6, 15, 20, 10, "#f3edce"], [9, 25, 16, 3, "#a4a890"],
-      [11, 17, 4, 2, "#5e9b78"], [17, 20, 5, 2, "#5e9b78"], [21, 16, 3, 2, "#5e9b78"]
-    ],
-    "entrepinares-matured-mixed-cheese": [
-      [8, 11, 16, 3, "#8e612a"], [6, 14, 20, 11, "#e8b84c"], [9, 25, 15, 3, "#9c6d2c"],
-      [12, 16, 3, 3, "#ffe18a"], [18, 18, 3, 2, "#b67d2d"], [21, 21, 2, 2, "#ffe18a"]
-    ]
-  };
-
-  const FOOD_PIXEL_ALIASES = {
-    salmon: ["salmon"],
-    chicken: ["pechuga", "pollo"],
-    "air-fryer-chicken-leg-bone-skin": ["muslo", "cuarto trasero"],
-    "air-fryer-chicken-wing-bone-skin": ["alita", "alitas"],
-    turkey: ["pavo"],
-    "natural-tuna-drained": ["atun", "tuna"],
-    egg: ["huevo"],
-    "green-garlic": ["green-garlic", "ajitos", "ajos tiernos", "ajetes", "ajo tierno"],
-    gnocchi: ["gnocchi", "noquis"],
-    potato: ["potato", "patata", "patatas", "papa"],
-    rice: ["arroz"],
-    pasta: ["pasta", "macarrones", "espaguetis"],
-    bread: ["pan"],
-    oats: ["avena"],
-    "muesli-crunchy-zero": ["muesli"],
-    "oat-crunchy-rings": ["crunchy rings", "rings"],
-    banana: ["platano", "banana"],
-    blueberries: ["arandanos"],
-    watermelon: ["sandia"],
-    melon: ["melon"],
-    "greek-yogurt": ["kefir", "yogur", "yogurt"],
-    lentils: ["lentejas"],
-    "cherry-tomato": ["cherry-tomato", "tomate", "tomate cherry", "cherry"],
-    "olive-oil": ["aceite", "oliva"],
-    "peanut-butter": ["cacahuete", "mani"],
-    avocado: ["aguacate", "avocado"],
-    "fresh-cheese": ["queso fresco", "batido"],
-    "whey-protein-scoop": ["whey", "proteina", "scoop"],
-    "mahon-cheese": ["mahon"],
-    "roquefort-cheese": ["roquefort"],
-    "entrepinares-matured-mixed-cheese": ["entrepinares", "mezcla madurado", "queso mezcla"]
-  };
-
-  const FOOD_PAIRING_RULES = {
-    salmon: ["cherry-tomato", "potato", "gnocchi", "bread", "green-garlic", "rice", "avocado", "olive-oil"],
-    chicken: ["rice", "potato", "green-garlic", "cherry-tomato", "avocado", "olive-oil"],
-    "air-fryer-chicken-leg-bone-skin": ["potato", "rice", "green-garlic", "cherry-tomato", "olive-oil", "avocado"],
-    "air-fryer-chicken-wing-bone-skin": ["potato", "rice", "cherry-tomato", "green-garlic", "olive-oil", "avocado"],
-    turkey: ["rice", "potato", "bread", "cherry-tomato", "avocado", "green-garlic"],
-    "natural-tuna-drained": ["bread", "cherry-tomato", "avocado", "olive-oil", "pasta", "rice"],
-    egg: ["bread", "avocado", "cherry-tomato", "green-garlic", "potato", "mahon-cheese"],
-    "green-garlic": ["egg", "salmon", "chicken", "potato", "cherry-tomato", "olive-oil"],
-    gnocchi: ["roquefort-cheese", "cherry-tomato", "olive-oil", "chicken", "mahon-cheese", "green-garlic"],
-    potato: ["salmon", "chicken", "egg", "green-garlic", "cherry-tomato", "olive-oil"],
-    rice: ["chicken", "turkey", "salmon", "lentils", "natural-tuna-drained", "avocado"],
-    pasta: ["natural-tuna-drained", "cherry-tomato", "olive-oil", "roquefort-cheese", "chicken", "mahon-cheese"],
-    bread: ["egg", "avocado", "natural-tuna-drained", "fresh-cheese", "peanut-butter", "mahon-cheese"],
-    oats: ["greek-yogurt", "banana", "blueberries", "peanut-butter", "whey-protein-scoop", "muesli-crunchy-zero"],
-    "muesli-crunchy-zero": ["greek-yogurt", "banana", "blueberries", "peanut-butter", "whey-protein-scoop", "oats"],
-    "oat-crunchy-rings": ["greek-yogurt", "banana", "blueberries", "peanut-butter", "whey-protein-scoop", "oats"],
-    banana: ["greek-yogurt", "oats", "peanut-butter", "blueberries", "muesli-crunchy-zero", "whey-protein-scoop"],
-    blueberries: ["greek-yogurt", "banana", "oats", "muesli-crunchy-zero", "whey-protein-scoop", "fresh-cheese"],
-    watermelon: ["melon", "greek-yogurt", "fresh-cheese", "blueberries", "banana", "oats"],
-    melon: ["watermelon", "greek-yogurt", "fresh-cheese", "blueberries", "banana", "oats"],
-    "greek-yogurt": ["blueberries", "banana", "peanut-butter", "oats", "muesli-crunchy-zero", "oat-crunchy-rings"],
-    lentils: ["rice", "cherry-tomato", "olive-oil", "green-garlic", "chicken", "potato"],
-    "cherry-tomato": ["natural-tuna-drained", "avocado", "olive-oil", "egg", "salmon", "green-garlic"],
-    "olive-oil": ["cherry-tomato", "green-garlic", "salmon", "natural-tuna-drained", "pasta", "avocado"],
-    "peanut-butter": ["banana", "bread", "oats", "greek-yogurt", "blueberries", "muesli-crunchy-zero"],
-    avocado: ["egg", "bread", "cherry-tomato", "natural-tuna-drained", "salmon", "olive-oil"],
-    "fresh-cheese": ["blueberries", "banana", "bread", "oats", "muesli-crunchy-zero", "peanut-butter"],
-    "whey-protein-scoop": ["greek-yogurt", "banana", "blueberries", "oats", "muesli-crunchy-zero", "peanut-butter"],
-    "mahon-cheese": ["bread", "cherry-tomato", "egg", "pasta", "potato", "green-garlic"],
-    "roquefort-cheese": ["gnocchi", "pasta", "bread", "cherry-tomato", "potato", "mahon-cheese"],
-    "entrepinares-matured-mixed-cheese": ["bread", "cherry-tomato", "egg", "pasta", "potato", "green-garlic"]
-  };
-
-  const MEAT_FOOD_IDS = new Set([
-    "chicken",
-    "air-fryer-chicken-leg-bone-skin",
-    "air-fryer-chicken-wing-bone-skin",
-    "turkey"
-  ]);
-  const FISH_FOOD_IDS = new Set(["salmon", "natural-tuna-drained"]);
-
-  function defaultDayContext() {
-    return {
-      training: "none",
-      intensity: "normal",
-      steps: ""
-    };
-  }
-
-  function normalizeDayContext(context = {}) {
-    const normalized = {
-      ...defaultDayContext(),
-      ...context
-    };
-    const validTraining = new Set([...Data.TRAINING_TYPES.map((item) => item.id), "mixed"]);
-    const validIntensity = new Set(Data.INTENSITY_LEVELS.map((item) => item.id));
-
-    if (!validTraining.has(normalized.training)) {
-      normalized.training = "none";
-    }
-    if (!validIntensity.has(normalized.intensity) || normalized.training === "none") {
-      normalized.intensity = "normal";
-    }
-
-    return normalized;
-  }
-
   function cloneValue(value) {
     return JSON.parse(JSON.stringify(value));
   }
@@ -387,15 +73,15 @@
   }
 
   function normalizeDay(day) {
-    day.context = normalizeDayContext(day.context);
+    day.context = Nutrition.normalizeDayContext(day.context);
     day.meals = Array.isArray(day.meals) ? day.meals : [];
     day.meals.forEach((meal) => {
-      ensureMealItems(meal);
+      MealItems.ensure(meal);
     });
 
-    const mealsWithFoods = day.meals.filter((meal) => mealFoods(meal).length);
+    const mealsWithFoods = day.meals.filter((meal) => MealItems.list(meal).length);
     if (mealsWithFoods.length) {
-      day.meals = day.meals.filter((meal) => mealFoods(meal).length || meal.manuallyAdded);
+      day.meals = day.meals.filter((meal) => MealItems.list(meal).length || meal.manuallyAdded);
       return;
     }
 
@@ -410,7 +96,7 @@
   }
 
   function dayContextHasChanges(context) {
-    const defaults = defaultDayContext();
+    const defaults = Nutrition.normalizeDayContext();
     return (context.training || defaults.training) !== defaults.training
       || (context.intensity || defaults.intensity) !== defaults.intensity
       || String(context.steps ?? defaults.steps) !== defaults.steps;
@@ -418,15 +104,15 @@
 
   function dayHasContent(day) {
     const meals = Array.isArray(day.meals) ? day.meals : [];
-    const context = normalizeDayContext(day.context);
-    return meals.some((meal) => mealFoods(meal).length || meal.manuallyAdded)
+    const context = Nutrition.normalizeDayContext(day.context);
+    return meals.some((meal) => MealItems.list(meal).length || meal.manuallyAdded)
       || dayContextHasChanges(context)
       || String(day.note || "").trim().length > 0;
   }
 
   function dayHasLoggedFood(day) {
     const meals = Array.isArray(day.meals) ? day.meals : [];
-    return meals.some((meal) => mealFoods(meal).length);
+    return meals.some((meal) => MealItems.list(meal).length);
   }
 
   function dayCanBeReplaced(date) {
@@ -521,26 +207,8 @@
     };
   }
 
-  function mealFoods(meal) {
-    return Array.isArray(meal.foods)
-      ? meal.foods
-      : Array.isArray(meal.items) ? meal.items : [];
-  }
-
-  function ensureMealItems(meal) {
-    meal.items = Array.isArray(meal.foods)
-      ? meal.foods
-      : Array.isArray(meal.items) ? meal.items : [];
-    return meal.items;
-  }
-
-  function setMealFoods(meal, foods) {
-    meal.items = foods;
-    if (Array.isArray(meal.foods)) meal.foods = foods;
-  }
-
   function mealTemplateItemsFromMeal(meal) {
-    return mealFoods(meal)
+    return MealItems.list(meal)
       .map((item) => ({
         foodId: item.foodId,
         grams: Nutrition.number(item.grams)
@@ -660,7 +328,7 @@
     const liveMeals = (sourceDay.meals || [])
       .map((meal) => ({
         name: meal.name || "Comida repetida",
-        items: mealFoods(meal),
+        items: MealItems.list(meal),
         snapshotMeal: snapshotMeals.find((snapshotMeal) => snapshotMeal.id === meal.id)
       }))
       .filter((meal) => meal.items.length);
@@ -721,7 +389,7 @@
     const meals = (day.meals || [])
       .map((meal) => {
         const snapshotMeal = snapshotMeals.find((item) => item.id === meal.id);
-        const items = mealFoods(meal)
+        const items = MealItems.list(meal)
           .map((item) => recoveryItemFromDayItem(item, snapshotMeal))
           .filter(Boolean);
         return {
@@ -797,7 +465,7 @@
         id: meal.id,
         name: meal.name,
         total: cloneMacros(meal.total),
-        items: mealFoods(meal).map((item) => {
+        items: MealItems.list(meal).map((item) => {
           const food = Nutrition.findFoodById(state.foods, item.foodId);
           const itemMacros = food ? Nutrition.foodMacros(food, item.grams) : Nutrition.zeroMacros();
           return {
@@ -882,7 +550,7 @@
   }
 
   function itemIdExists(day, itemId) {
-    return (day.meals || []).some((meal) => mealFoods(meal).some((item) => item.id === itemId));
+    return (day.meals || []).some((meal) => MealItems.list(meal).some((item) => item.id === itemId));
   }
 
   function restoreItemClone(item, day) {
@@ -894,7 +562,7 @@
   function restoreMealClone(meal, day) {
     const clone = cloneValue(meal);
     if ((day.meals || []).some((item) => item.id === clone.id)) clone.id = Storage.uid("meal");
-    const items = mealFoods(clone).map((item) => restoreItemClone(item, day));
+    const items = MealItems.list(clone).map((item) => restoreItemClone(item, day));
     clone.items = items;
     delete clone.foods;
     return clone;
@@ -940,11 +608,11 @@
     const meal = day.meals.find((item) => item.id === undo.payload.mealId);
     if (!meal) return false;
 
-    const items = ensureMealItems(meal);
+    const items = MealItems.ensure(meal);
     const item = restoreItemClone(undo.payload.item, day);
     const index = Math.max(0, Math.min(undo.payload.itemIndex, items.length));
     items.splice(index, 0, item);
-    setMealFoods(meal, items);
+    MealItems.set(meal, items);
     uiState.collapsedMealIds.delete(meal.id);
     return true;
   }
@@ -964,10 +632,10 @@
     const meal = day.meals.find((item) => item.id === undo.payload.mealId);
     if (!meal) return false;
 
-    const currentItems = mealFoods(meal);
+    const currentItems = MealItems.list(meal);
     const restoredItems = (undo.payload.items || []).map((item) => restoreItemClone(item, day));
     const restoredIds = new Set(restoredItems.map((item) => item.id));
-    setMealFoods(meal, [
+    MealItems.set(meal, [
       ...restoredItems,
       ...currentItems.filter((item) => !restoredIds.has(item.id))
     ]);
@@ -988,101 +656,100 @@
     return true;
   }
 
-  function confirmDanger(message) {
-    return window.confirm(message);
-  }
+  let activeDangerDialog = null;
 
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+  async function confirmDanger(message) {
+    if (activeDangerDialog) return activeDangerDialog.promise;
 
-  function foodSpriteKey(food) {
-    const id = typeof food === "object" && food ? food.id : "";
-    const name = typeof food === "object" && food ? food.name : food;
-    if (id && FOOD_PIXEL_SPRITES[id]) return id;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const backdrop = document.createElement("div");
+    const dialog = document.createElement("section");
+    const title = document.createElement("h2");
+    const copy = document.createElement("p");
+    const actions = document.createElement("div");
+    const cancelButton = document.createElement("button");
+    const confirmButton = document.createElement("button");
 
-    const normalizedId = Nutrition.normalize(id || "");
-    const normalizedName = Nutrition.normalize(name || "");
-    return Object.entries(FOOD_PIXEL_ALIASES).find(([, aliases]) => {
-      return aliases.some((alias) => {
-        const normalizedAlias = Nutrition.normalize(alias);
-        return normalizedId === normalizedAlias || normalizedName.includes(normalizedAlias);
-      });
-    })?.[0] || fallbackFoodSpriteKey(food);
-  }
+    backdrop.className = "confirm-danger-backdrop modal-backdrop";
+    dialog.className = "confirm-danger-dialog modal-content";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "confirm-danger-title");
+    dialog.setAttribute("aria-describedby", "confirm-danger-message");
 
-  function fallbackFoodSpriteKey(food) {
-    if (typeof food !== "object" || !food) return "generic-food";
+    title.id = "confirm-danger-title";
+    title.textContent = "Confirmar acción";
+    copy.id = "confirm-danger-message";
+    copy.textContent = message;
 
-    const protein = Number(food.protein || 0);
-    const carbs = Number(food.carbs || 0);
-    const fat = Number(food.fat || 0);
+    actions.className = "confirm-danger-actions";
+    cancelButton.type = "button";
+    cancelButton.className = "ghost-action";
+    cancelButton.textContent = "Cancelar";
+    confirmButton.type = "button";
+    confirmButton.className = "secondary-action confirm-danger-confirm";
+    confirmButton.textContent = "Confirmar";
 
-    if (fat >= protein && fat >= carbs && fat > 8) return "generic-fat";
-    if (protein >= carbs && protein >= fat && protein > 8) return "generic-protein";
-    if (carbs >= protein && carbs >= fat && carbs > 10) return "generic-carb";
-    return "generic-food";
-  }
+    actions.append(cancelButton, confirmButton);
+    dialog.append(title, copy, actions);
+    backdrop.appendChild(dialog);
 
-  function renderFoodSprite(food) {
-    const key = foodSpriteKey(food);
-    const rects = FOOD_PIXEL_SPRITES[key];
-    if (!rects) return "";
+    let resolveDialog = () => {};
+    let settled = false;
+    const promise = new Promise((resolve) => {
+      resolveDialog = resolve;
+    });
 
-    return `
-      <span class="food-sprite food-sprite-${escapeHtml(key)}" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="32" height="32" role="img" focusable="false">
-          ${rects.map(([x, y, width, height, fill]) => `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"></rect>`).join("")}
-        </svg>
-      </span>
-    `;
-  }
+    function focusableDialogControls() {
+      return [...dialog.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")]
+        .filter((item) => !item.disabled && item.offsetParent !== null);
+    }
 
-  function profileAvatarId(profile) {
-    const avatarId = String(profile?.avatarId || "");
-    if (PROFILE_PIXEL_SPRITES[avatarId]) return avatarId;
-    return profile?.sex === "female" ? "female" : "male";
-  }
+    function closeDialog(confirmed) {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener("keydown", handleConfirmKeydown);
+      backdrop.remove();
+      activeDangerDialog = null;
+      if (previousFocus && document.contains(previousFocus)) {
+        previousFocus.focus({ preventScroll: true });
+      }
+      resolveDialog(confirmed);
+    }
 
-  function profileAvatarLabel(avatarId) {
-    return (PROFILE_PIXEL_AVATARS.find((avatar) => avatar.id === avatarId) || PROFILE_PIXEL_AVATARS[0]).label;
-  }
+    function handleConfirmKeydown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDialog(false);
+        return;
+      }
 
-  function renderProfileSprite(avatarId) {
-    const key = PROFILE_PIXEL_SPRITES[avatarId] ? avatarId : "male";
-    const rects = PROFILE_PIXEL_SPRITES[key];
+      if (event.key !== "Tab") return;
+      const controls = focusableDialogControls();
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
 
-    return `
-      <svg class="profile-pixel-sprite profile-pixel-sprite-${key}" viewBox="0 0 64 64" width="64" height="64" role="img" focusable="false">
-        ${rects.map(([x, y, width, height, fill]) => `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"></rect>`).join("")}
-      </svg>
-    `;
-  }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
 
-  function renderAvatarPicker(currentAvatarId) {
-    return `
-      <fieldset class="avatar-picker">
-        <legend>Avatar</legend>
-        <div class="avatar-options">
-          ${PROFILE_PIXEL_AVATARS.map((avatar) => `
-            <label class="avatar-option ${avatar.id === currentAvatarId ? "is-selected" : ""}">
-              <input type="radio" name="avatarId" value="${escapeHtml(avatar.id)}" ${avatar.id === currentAvatarId ? "checked" : ""}>
-              <span class="avatar-preview" aria-hidden="true">${renderProfileSprite(avatar.id)}</span>
-              <span>${escapeHtml(avatar.label)}</span>
-            </label>
-          `).join("")}
-        </div>
-      </fieldset>
-    `;
-  }
+    cancelButton.addEventListener("click", () => closeDialog(false));
+    confirmButton.addEventListener("click", () => closeDialog(true));
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) closeDialog(false);
+    });
+    document.addEventListener("keydown", handleConfirmKeydown);
+    document.body.appendChild(backdrop);
+    activeDangerDialog = { promise, close: closeDialog };
+    window.setTimeout(() => cancelButton.focus({ preventScroll: true }), 0);
 
-  function selected(value, target) {
-    return value === target ? "selected" : "";
+    return promise;
   }
 
   function hasTrainingType(value, type) {
@@ -1107,94 +774,12 @@
     return trainingValueFromFlags(nextStrength, nextCardio);
   }
 
-  function isDayContextOptionActive(name, value, optionId) {
-    if (name !== "training") return value === optionId;
-    if (optionId === "none") return !value || value === "none";
-    return hasTrainingType(value, optionId);
-  }
-
-  function renderDayContextChoiceButtons(name, options, value, disabled = false) {
-    return options.map((item) => {
-      const isActive = isDayContextOptionActive(name, value, item.id);
-      return `
-        <button
-          class="day-context-choice ${isActive ? "is-active" : ""}"
-          type="button"
-          data-action="set-day-context"
-          data-field="${escapeHtml(name)}"
-          data-value="${escapeHtml(item.id)}"
-          aria-pressed="${isActive ? "true" : "false"}"
-          ${disabled ? "disabled" : ""}
-        >${escapeHtml(item.label)}</button>
-      `;
-    }).join("");
-  }
-
-  function renderDayTrainingCard(context) {
-    const intensityDisabled = context.training === "none";
-    return `
-      <div class="field context-choice-field day-training-card">
-        <span>Entreno de hoy</span>
-        <div class="day-training-card-grid">
-          <div class="context-choice-block">
-            <small>Tipo</small>
-            <div class="context-choice-group" role="group" aria-label="Tipo de entreno">
-              ${renderDayContextChoiceButtons("training", Data.TRAINING_TYPES, context.training)}
-            </div>
-          </div>
-          <div class="context-choice-block ${intensityDisabled ? "is-disabled" : ""}">
-            <small>Intensidad</small>
-            <div class="context-choice-group" role="group" aria-label="Intensidad" ${intensityDisabled ? 'aria-disabled="true"' : ""}>
-              ${renderDayContextChoiceButtons("intensity", Data.INTENSITY_LEVELS, context.intensity, intensityDisabled)}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function optionLabel(options, value) {
-    return (options.find((item) => item.id === value) || options[0]).label;
-  }
-
-  function formatWithUnit(value, meta) {
-    return `${formatMacro(value, meta.precision)} ${meta.unit}`;
-  }
-
-  function formatDate(iso) {
-    return new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES", {
-      weekday: "short",
-      day: "numeric",
-      month: "short"
-    });
-  }
-
-  function formatDateTime(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "fecha desconocida";
-    return new Intl.DateTimeFormat("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(date);
-  }
-
   function dayStatusLabel(day) {
     const activeDate = Storage.activeDayIso();
     if (day.savedAt) return `Histórico registrado - ${formatDate(day.date)}`;
     if (day.date === activeDate) return `Día activo - ${formatDate(day.date)}`;
     if (day.date < activeDate) return `Pendiente anterior - ${formatDate(day.date)}`;
     return `Siguiente día - ${formatDate(day.date)}`;
-  }
-
-  function formatMacro(value, precision = 0) {
-    return Nutrition.formatNumber(value, precision);
-  }
-
-  function icon(name) {
-    return Icons.icon(name);
   }
 
   function getRenderContext() {
@@ -1241,8 +826,8 @@
     renderProfile();
     renderNavigation();
     renderQuickFoodList();
-    renderSummary(context);
-    renderEquivalences(context);
+    syncSummaryView(context);
+    syncEquivalencesView(context);
     renderAnalysis(context);
     refs.dayEyebrow.textContent = isProfileView ? "Perfil" : isFoodView ? "Biblioteca" : dayStatusLabel(context.day);
     refs.dayTitle.textContent = isProfileView ? "Editar perfil" : isFoodView ? "Gestionar alimentos" : "DIARIO DE COMIDAS";
@@ -1270,10 +855,24 @@
       return;
     }
 
-    renderDayContext(context);
-    renderMacroCards(context);
-    renderMeals(context);
+    syncDayContextView(context);
+    syncMacroCardsView(context);
+    syncMealsView(context);
     renderHistory();
+  }
+
+
+  function renderProfile() {
+    const rendered = ProfileRenderers.renderSidebarProfile({
+      profile: state.profile,
+      isEditing: uiState.view === "profile"
+    });
+    refs.profileTitle.textContent = rendered.title;
+    refs.profilePanelContent.innerHTML = rendered.html;
+  }
+
+  function renderProfileEditor() {
+    refs.profileEditor.innerHTML = ProfileRenderers.renderProfileEditor({ profile: state.profile });
   }
 
   function renderNavigation() {
@@ -1295,391 +894,8 @@
       .join("");
   }
 
-  function renderProfile() {
-    const profile = state.profile;
-    const goal = optionLabel(Data.GOALS, profile.goal);
-    const activity = optionLabel(Data.ACTIVITY_LEVELS, profile.activity);
-    const profileName = String(profile.profileName || "").trim() || "Mi perfil";
-    const avatarId = profileAvatarId(profile);
-    refs.profileTitle.textContent = profileName;
-    refs.profilePanelContent.innerHTML = `
-      <div class="profile-summary">
-        <div class="profile-identity">
-          <span class="profile-avatar profile-avatar-${escapeHtml(avatarId)}" aria-hidden="true">${renderProfileSprite(avatarId)}</span>
-          <div>
-            <strong>${escapeHtml(profileName)}</strong>
-            <span>${profile.sex === "female" ? "Mujer" : "Hombre"} · ${escapeHtml(profile.age)} años · ${escapeHtml(profileAvatarLabel(avatarId))}</span>
-          </div>
-        </div>
-        <div class="profile-quick-stats">
-          <span><strong>${escapeHtml(profile.weight)} kg</strong>Peso</span>
-          <span><strong>${escapeHtml(profile.height)} cm</strong>Altura</span>
-          <span><strong>${escapeHtml(profile.trainingDays)}/sem</strong>Entreno</span>
-        </div>
-        <p class="profile-context">${escapeHtml(goal)} · ${escapeHtml(activity)} · ${escapeHtml(profile.steps)} pasos</p>
-      </div>
-      <div class="profile-actions">
-        <button class="quiet-action" type="button" data-action="edit-profile">${uiState.view === "profile" ? "Editando perfil" : "Editar perfil"}</button>
-      </div>
-    `;
-  }
-
-  function renderProfileEditor() {
-    const profile = state.profile;
-    const profileName = String(profile.profileName || "").trim() || "Mi perfil";
-    const avatarId = profileAvatarId(profile);
-
-    refs.profileEditor.innerHTML = `
-      <div class="profile-editor-card">
-        <div class="profile-editor-head">
-          <span class="profile-avatar profile-avatar-${escapeHtml(avatarId)}" aria-hidden="true">${renderProfileSprite(avatarId)}</span>
-          <div>
-            <p>Perfil</p>
-            <h2 id="profile-editor-title">Editar perfil</h2>
-            <span>Los cambios se aplican solo al guardar.</span>
-          </div>
-        </div>
-        <form class="profile-editor-form" data-action="profile-editor" novalidate>
-          <div class="form-grid">
-            <label class="field full">
-              <span>Nombre</span>
-              <input name="profileName" type="text" maxlength="40" value="${escapeHtml(profileName)}">
-            </label>
-            <label class="field">
-              <span>Sexo</span>
-              <select name="sex">
-                <option value="male" ${selected(profile.sex, "male")}>Hombre</option>
-                <option value="female" ${selected(profile.sex, "female")}>Mujer</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Edad</span>
-              <input name="age" type="number" min="12" max="100" value="${escapeHtml(profile.age)}">
-            </label>
-            ${renderAvatarPicker(avatarId)}
-            <label class="field">
-              <span>Altura</span>
-              <input name="height" type="number" min="120" max="230" value="${escapeHtml(profile.height)}">
-            </label>
-            <label class="field">
-              <span>Peso</span>
-              <input name="weight" type="number" min="35" max="220" step="0.1" value="${escapeHtml(profile.weight)}">
-            </label>
-            <label class="field full">
-              <span>Actividad</span>
-              <select name="activity">
-                ${Data.ACTIVITY_LEVELS.map((level) => `
-                  <option value="${level.id}" ${selected(profile.activity, level.id)}>${escapeHtml(level.label)}</option>
-                `).join("")}
-              </select>
-            </label>
-            <label class="field full">
-              <span>Objetivo</span>
-              <select name="goal">
-                ${Data.GOALS.map((goalOption) => `
-                  <option value="${goalOption.id}" ${selected(profile.goal, goalOption.id)}>${escapeHtml(goalOption.label)}</option>
-                `).join("")}
-              </select>
-            </label>
-            <label class="field">
-              <span>Entrenos/sem</span>
-              <input name="trainingDays" type="number" min="0" max="14" value="${escapeHtml(profile.trainingDays)}">
-            </label>
-            <label class="field">
-              <span>Pasos/dia</span>
-              <input name="steps" type="number" min="0" max="40000" step="500" value="${escapeHtml(profile.steps)}">
-            </label>
-          </div>
-          <div class="profile-editor-actions">
-            <button class="secondary-action profile-discard-action" type="button" data-action="discard-profile">Descartar cambios</button>
-            <button class="primary-action profile-save-action" type="submit">Guardar perfil</button>
-          </div>
-        </form>
-      </div>
-    `;
-  }
-
-  function renderDayContext(renderContext) {
-    const { day, summary } = renderContext;
-    const context = day.context;
-    const totals = summary.total;
-    const targets = summary.targets;
-    const kcalRange = summary.kcalRange;
-    const energy = summary.energy;
-    const toneClass = dayToneClass(totals, kcalRange);
-    const energyScaleMax = Math.max(kcalRange.max * 1.12, targets.maintenance, totals.kcal, targets.kcal, 1);
-    const toEnergyPct = (value) => Math.min(100, Math.max(0, (value / energyScaleMax) * 100));
-    const pct = toEnergyPct(totals.kcal);
-    const rangeStartPct = toEnergyPct(kcalRange.min);
-    const rangeEndPct = toEnergyPct(kcalRange.max);
-    const rangeWidthPct = Math.min(100 - rangeStartPct, Math.max(1.5, rangeEndPct - rangeStartPct));
-    const overWidthPct = Math.max(0, 100 - rangeEndPct);
-    const energyScaleLabel = `${formatMacro(totals.kcal)} kcal registradas. Objetivo ${formatMacro(kcalRange.min)}-${formatMacro(kcalRange.max)} kcal. Gasto ${formatMacro(targets.maintenance)} kcal.`;
-    const isSavedHistory = Boolean(day.savedAt);
-
-    refs.dayContext.innerHTML = `
-      <section class="day-editor ${toneClass}" aria-labelledby="day-context-title">
-        ${renderHistoricalDayBanner(day)}
-        <div class="day-hero-main">
-          <div class="day-status-copy">
-            <h2 id="day-context-title">${escapeHtml(energy.headline)}</h2>
-            <strong class="day-energy-metric">${energy.metric}</strong>
-          </div>
-          <div class="day-balance ${toneClass}">
-            <div class="hero-progress" aria-label="${escapeHtml(energyScaleLabel)}">
-              <i class="hero-target-band" aria-hidden="true" style="left:${rangeStartPct}%; width:${rangeWidthPct}%"></i>
-              <i class="hero-over-band" aria-hidden="true" style="left:${rangeEndPct}%; width:${overWidthPct}%"></i>
-              <span class="hero-progress-fill" style="width:${pct}%"></span>
-            </div>
-            <div class="hero-scale-meta" aria-hidden="true">
-              <span class="hero-scale-target"><strong>Objetivo</strong> ${formatMacro(kcalRange.min)}-${formatMacro(kcalRange.max)} kcal</span>
-              <span class="hero-scale-spend"><strong>Gasto</strong> ${formatMacro(targets.maintenance)} kcal</span>
-            </div>
-          </div>
-        </div>
-        ${isSavedHistory ? "" : `<div class="day-context-grid context-controls">
-          ${renderDayTrainingCard(context)}
-          <label class="field">
-            <span>Pasos hoy</span>
-            <input name="steps" type="number" min="0" max="50000" step="500" placeholder="${escapeHtml(state.profile.steps)}" value="${escapeHtml(context.steps)}">
-          </label>
-        </div>`}
-        ${renderRecoveryHint(day)}
-        ${isSavedHistory ? "" : renderPreviousDayHint(day)}
-      </section>
-    `;
-  }
-
-  function renderHistoricalDayBanner(day) {
-    if (!day.savedAt) return "";
-    const totalMode = day.nutritionSnapshot ? "Totales protegidos" : "Totales recalculados";
-    return `
-      <div class="history-state-banner" role="status">
-        <strong>Día guardado</strong>
-        <span>Solo lectura</span>
-        <span>Guardado ${escapeHtml(formatDateTime(day.savedAt))}</span>
-        <span>${totalMode}</span>
-      </div>
-    `;
-  }
-
-  function renderRecoveryHint(day) {
-    if (day.savedAt || !hasRecoverableClosedDay()) return "";
-    const recovery = state.lastClosedDayRecovery;
-    const sourceLabel = isIsoDate(recovery.sourceDate) ? formatDate(recovery.sourceDate) : "el último día";
-
-    return `
-      <div class="late-day-hint recovery-hint">
-        <div>
-          <strong>Día guardado y limpiado</strong>
-          <span>Puedes recuperar una copia editable de ${sourceLabel}.</span>
-        </div>
-        <button class="secondary-action" type="button" data-action="recover-last-closed-day">Recuperar</button>
-      </div>
-    `;
-  }
-
-  function renderPreviousDayHint(day) {
-    const suggestion = previousDaySuggestion(day);
-    if (!suggestion) return "";
-
-    if (suggestion.registered) {
-      return `
-        <div class="late-day-hint">
-          <div>
-            <strong>¿Este registro era de ayer?</strong>
-            <span>Ayer está libre. Puedes moverlo a ${formatDate(suggestion.previousDate)} y dejar hoy limpio.</span>
-          </div>
-          <button class="secondary-action" type="button" data-action="move-to-previous-day">Mover a ayer</button>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="late-day-hint">
-        <div>
-          <strong>¿Sigues cerrando ayer?</strong>
-          <span>Ayer está libre. Mueve este registro a ${formatDate(suggestion.previousDate)} antes de seguir.</span>
-        </div>
-        <div class="late-day-actions">
-          <button class="secondary-action" type="button" data-action="use-previous-day">Usar ayer</button>
-          <button class="quiet-action" type="button" data-action="register-previous-day">Registrar como ayer</button>
-        </div>
-      </div>
-    `;
-  }
-
-  function dayToneClass(totals, kcalRange) {
-    if (totals.kcal === 0) return "is-empty";
-    if (totals.kcal > kcalRange.max) return "is-over";
-    if (totals.kcal >= kcalRange.min) return "is-good";
-    return "is-under";
-  }
-
-  function dominantMacro(macros = {}) {
-    const protein = Nutrition.number(macros.protein) * 4;
-    const carbs = Nutrition.number(macros.carbs) * 4;
-    const fat = Nutrition.number(macros.fat) * 9;
-    const fiber = Nutrition.number(macros.fiber);
-    const entries = [
-      ["protein", protein],
-      ["carbs", carbs],
-      ["fat", fat]
-    ].sort((a, b) => b[1] - a[1]);
-
-    if (fiber >= 8 && fiber * 6 >= entries[0][1]) return "fiber";
-    if (entries[0][1] <= 0) return "energy";
-    return entries[0][0];
-  }
-
-  function macroToneClass(macros = {}) {
-    return `is-${dominantMacro(macros)}`;
-  }
-
-  function macroToneLabel(macros = {}) {
-    const labels = {
-      protein: "Proteína",
-      carbs: "Hidratos",
-      fat: "Grasas",
-      fiber: "Fibra",
-      energy: "Energía"
-    };
-
-    return labels[dominantMacro(macros)] || labels.energy;
-  }
-
-  function renderMeals(renderContext) {
-    const aggregated = renderContext.summary.aggregate;
-    const snapshotMeals = renderContext.day.savedAt && renderContext.day.nutritionSnapshot
-      ? renderContext.day.nutritionSnapshot.meals || []
-      : null;
-    const isReadOnlyHistory = Boolean(renderContext.day.savedAt);
-
-    refs.meals.innerHTML = `
-      ${isReadOnlyHistory ? "" : renderSmartFoodSuggestions(renderContext.day)}
-      ${isReadOnlyHistory ? "" : renderMealTemplates()}
-      ${aggregated.meals.map((meal, index) => {
-        const snapshotMeal = snapshotMeals ? snapshotMeals.find((item) => item.id === meal.id) : null;
-        const collapsed = isMealCollapsed(meal);
-        const foods = snapshotMeal ? snapshotMeal.items || [] : mealFoods(meal);
-        const mealTotal = snapshotMeal?.total || meal.total;
-        const foodCount = foods.length;
-        const foodCountLabel = foodCount === 1 ? "1 alimento" : `${foodCount} alimentos`;
-        const templateItems = mealTemplateItemsFromMeal(meal);
-        const savedAsTemplate = Boolean(findMealTemplateBySignature(templateItems));
-        const toneClass = macroToneClass(mealTotal);
-        const toneLabel = macroToneLabel(mealTotal);
-        return `
-      <article class="meal-card meal-list ${toneClass} ${collapsed ? "is-collapsed" : ""}" data-meal-id="${meal.id}">
-        <div class="meal-top">
-          <button class="meal-number" type="button" data-action="toggle-meal" aria-label="${collapsed ? "Abrir comida" : "Cerrar comida"}">${index + 1}</button>
-          ${isReadOnlyHistory ? `
-          <div class="meal-name is-read-only">
-            <span class="sr-only">Nombre de la comida</span>
-            <strong>${escapeHtml(meal.name)}</strong>
-          </div>
-          ` : `<label class="meal-name">
-            <span class="sr-only">Nombre de la comida</span>
-            <input class="meal-name-input" data-action="rename-meal" value="${escapeHtml(meal.name)}">
-          </label>`}
-          <div class="meal-total">
-            <strong>${formatMacro(mealTotal.kcal)} kcal</strong>
-            <span class="meal-share">${foodCountLabel} · ${toneLabel}</span>
-          </div>
-          ${isReadOnlyHistory ? "" : `<button class="icon-button soft save-template-action ${savedAsTemplate ? "is-active" : ""}" type="button" data-action="save-meal-template" title="${savedAsTemplate ? "Comida guardada" : "Guardar comida"}" aria-label="${savedAsTemplate ? "Comida guardada" : "Guardar comida"}">${icon(savedAsTemplate ? "starFilled" : "star")}</button>`}
-          <button class="icon-button meal-collapse" type="button" data-action="toggle-meal" title="${collapsed ? "Abrir comida" : "Cerrar comida"}" aria-label="${collapsed ? "Abrir comida" : "Cerrar comida"}">${icon("chevron")}</button>
-          ${isReadOnlyHistory ? "" : `<button class="icon-button soft danger-action" type="button" data-action="remove-meal" title="Eliminar comida" aria-label="Eliminar comida">${icon("trash")}</button>`}
-        </div>
-        <div class="meal-body">
-          <div class="meal-items">
-            ${foods.length ? foods.map((item) => snapshotMeal ? renderSnapshotMealItem(item) : isReadOnlyHistory ? renderReadOnlyMealItem(item) : renderMealItem(item, meal)).join("") : `
-              <p class="empty-copy">Sin alimentos todavía.</p>
-            `}
-          </div>
-          ${isReadOnlyHistory ? "" : `<form class="meal-form add-food-row ${isMealAddOpen(meal) ? "" : "is-hidden"}" data-action="add-item" data-meal-id="${meal.id}" novalidate>
-            <label class="meal-field food-select-field">
-              <span>Alimento</span>
-              <select name="foodId" aria-label="Alimento">
-                <option value="">Selecciona alimento</option>
-                ${renderFoodOptions(selectedFoodIdForMeal(meal))}
-              </select>
-            </label>
-            <label class="meal-field grams-field">
-              <span>Peso</span>
-              <span class="weight-control">
-                <input name="grams" type="text" inputmode="decimal" autocomplete="off" placeholder="300" aria-label="Peso en gramos">
-                <span aria-hidden="true">g</span>
-              </span>
-            </label>
-            <button class="icon-button add-button" type="button" data-action="add-food" title="Añadir alimento" aria-label="Añadir alimento">${icon("plus")}</button>
-          </form>
-          `}
-          ${isReadOnlyHistory ? "" : `<button class="inline-add ${isMealAddOpen(meal) ? "is-hidden" : ""}" type="button" data-action="toggle-add-food">${icon("plus")} Añadir alimento</button>`}
-        </div>
-      </article>
-      `;
-      }).join("")}
-      ${isReadOnlyHistory ? "" : `<button class="ghost-action add-meal-row" type="button" data-action="add-meal">+ Comida</button>`}
-    `;
-  }
-
-  function isMealCollapsed(meal) {
-    return uiState.collapsedMealIds.has(meal.id);
-  }
-
-  function isMealAddOpen(meal) {
-    return uiState.addFoodMealIds.has(meal.id);
-  }
-
-  function renderMealTemplates() {
-    const templates = state.mealTemplates || [];
-    if (!templates.length) return "";
-
-    return `
-      <section class="meal-template-panel" aria-labelledby="meal-template-title">
-        <div class="meal-template-head">
-          <div>
-            <span>Favoritas</span>
-            <strong id="meal-template-title">Comidas guardadas</strong>
-          </div>
-          <span>${templates.length}</span>
-        </div>
-        <div class="meal-template-list">
-          ${templates.map((template) => renderMealTemplate(template)).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderMealTemplate(template) {
-    const total = mealTemplateTotal(template);
-    const itemCount = template.items.length;
-    const itemLabel = itemCount === 1 ? "1 alimento" : `${itemCount} alimentos`;
-    const hasSnapshot = Array.isArray(template.itemSnapshots) && template.itemSnapshots.length;
-
-    return `
-      <article class="meal-template-card ${macroToneClass(total)}" data-template-id="${escapeHtml(template.id)}">
-        <div class="meal-template-copy">
-          <strong>${escapeHtml(template.name)}</strong>
-          <span>${itemLabel}${hasSnapshot ? " · estable" : ""}</span>
-        </div>
-        <div class="meal-template-actions">
-          <button class="secondary-action template-use-action" type="button" data-action="insert-meal-template">${icon("plus")} Usar</button>
-          <button class="icon-button soft danger-action" type="button" data-action="remove-meal-template" title="Eliminar comida guardada" aria-label="Eliminar comida guardada">${icon("trash")}</button>
-        </div>
-      </article>
-    `;
-  }
-
   function activeFoods() {
     return state.foods.filter((food) => !food.deletedAt);
-  }
-
-  function sortFoods(foods) {
-    return [...foods].sort((a, b) => {
-      if (Boolean(a.favorite) !== Boolean(b.favorite)) return a.favorite ? -1 : 1;
-      return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
-    });
   }
 
   function selectedFoodIdForMeal(meal) {
@@ -1692,202 +908,15 @@
     return foodId ? activeFoods().find((food) => food.id === foodId) : null;
   }
 
-  function renderFoodOptions(selectedFoodId = "") {
-    return sortFoods(activeFoods())
-      .map((food) => `<option value="${escapeHtml(food.id)}" ${selected(selectedFoodId, food.id)}>${escapeHtml(food.name)}</option>`)
-      .join("");
-  }
-
-  function foodCategory(food = {}) {
-    const id = String(food.id || "");
-    const name = Nutrition.normalize(food.name || "");
-
-    if (MEAT_FOOD_IDS.has(id)) return "meat";
-    if (FISH_FOOD_IDS.has(id)) return "fish";
-    if (/\b(pollo|pavo|ternera|cerdo|jamon|carne)\b/.test(name)) return "meat";
-    if (/\b(salmon|atun|bonito|merluza|pescado|bacalao|sardina)\b/.test(name)) return "fish";
-    if (["greek-yogurt", "fresh-cheese", "whey-protein-scoop"].includes(id)) return "dairy";
-    if (["banana", "blueberries", "watermelon", "melon"].includes(id)) return "fruit";
-    if (["oats", "muesli-crunchy-zero", "oat-crunchy-rings"].includes(id)) return "breakfast-grain";
-    if (["rice", "pasta", "gnocchi", "potato", "bread"].includes(id)) return "carb";
-    if (id === "egg") return "egg";
-    if (["green-garlic", "cherry-tomato"].includes(id)) return "vegetable";
-    if (id === "lentils") return "legume";
-    if (["olive-oil", "peanut-butter", "avocado"].includes(id)) return "fat";
-    if (id.includes("cheese") || name.includes("queso") || name.includes("roquefort") || name.includes("mahon")) return "cheese";
-
-    const protein = Nutrition.number(food.protein);
-    const carbs = Nutrition.number(food.carbs);
-    const fat = Nutrition.number(food.fat);
-    if (fat > 8 && fat >= protein && fat >= carbs) return "fat";
-    if (protein > 10 && protein >= carbs && protein >= fat) return "protein";
-    if (carbs > 12 && carbs >= protein && carbs >= fat) return "carb";
-    return "other";
-  }
-
-  function categoryPairingScore(sourceFood, candidateFood) {
-    const source = foodCategory(sourceFood);
-    const candidate = foodCategory(candidateFood);
-    const matrix = {
-      dairy: { fruit: 92, "breakfast-grain": 86, fat: 62, dairy: 40, carb: 18, meat: -45, fish: -35, protein: -35, vegetable: -24 },
-      fruit: { dairy: 92, "breakfast-grain": 84, fat: 68, fruit: 38, meat: -45, fish: -35, protein: -35, vegetable: -22 },
-      "breakfast-grain": { dairy: 88, fruit: 84, fat: 68, "breakfast-grain": 35, meat: -35, fish: -28, protein: -25 },
-      meat: { carb: 88, vegetable: 82, fat: 64, legume: 44, cheese: 34, egg: 18, fruit: -42, dairy: -34, fish: -100 },
-      fish: { carb: 88, vegetable: 84, fat: 68, legume: 38, cheese: 24, egg: 10, fruit: -42, dairy: -28, meat: -100 },
-      protein: { carb: 84, vegetable: 76, fat: 58, legume: 38, cheese: 30, fruit: -38, dairy: -30 },
-      egg: { carb: 84, vegetable: 80, fat: 74, cheese: 58, meat: 18, fish: 10, protein: 20, fruit: -38 },
-      vegetable: { meat: 84, fish: 84, egg: 80, carb: 72, fat: 68, cheese: 46, protein: 42, fruit: -28 },
-      carb: { meat: 86, fish: 86, vegetable: 76, cheese: 70, fat: 62, legume: 52, protein: 38, fruit: 22 },
-      legume: { carb: 84, vegetable: 78, fat: 62, meat: 36, fish: 30, protein: 30, cheese: 12 },
-      fat: { carb: 72, vegetable: 70, fish: 68, meat: 62, egg: 62, fruit: 58, dairy: 42, protein: 34 },
-      cheese: { carb: 80, vegetable: 64, egg: 58, meat: 46, fish: 32, protein: 36, fat: 28, fruit: -24 },
-      other: { carb: 30, vegetable: 28, meat: 24, fish: 24, protein: 24, fruit: 20, dairy: 18 }
-    };
-
-    return matrix[source]?.[candidate] ?? 0;
-  }
-
-  function semanticPairingIds(sourceFood, activeById) {
-    const explicit = FOOD_PAIRING_RULES[sourceFood.id] || [];
-    if (explicit.length) return explicit.filter((id) => activeById.has(id));
-
-    return activeFoods()
-      .filter((food) => food.id !== sourceFood.id)
-      .map((food) => ({ id: food.id, score: categoryPairingScore(sourceFood, food) }))
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-      .map((item) => item.id);
-  }
-
-  function preferredGramsForFood(food, gramsCounts) {
-    if (gramsCounts && gramsCounts.size) {
-      return [...gramsCounts.entries()]
-        .sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
-    }
-    return Nutrition.number(food.servingGrams) || 100;
-  }
-
-  function combinationStatsForFood(sourceFoodId) {
-    const activeById = new Map(activeFoods().map((food) => [food.id, food]));
-    const stats = new Map();
-
-    function addPair(candidateId, grams, date, weight) {
-      const food = activeById.get(candidateId);
-      if (!food || candidateId === sourceFoodId) return;
-
-      const roundedGrams = Math.max(5, Math.round(Nutrition.number(grams || food.servingGrams || 100) / 5) * 5);
-      const stat = stats.get(candidateId) || {
-        food,
-        count: 0,
-        gramsCounts: new Map(),
-        lastDate: ""
-      };
-
-      stat.count += weight;
-      stat.gramsCounts.set(roundedGrams, (stat.gramsCounts.get(roundedGrams) || 0) + weight);
-      stat.lastDate = String(date || "") > stat.lastDate ? String(date || "") : stat.lastDate;
-      stats.set(candidateId, stat);
-    }
-
-    Object.values(state.days || {}).forEach((day) => {
-      if (!day) return;
-      (day.meals || []).forEach((meal) => {
-        const items = mealFoods(meal).filter((item) => activeById.has(item.foodId));
-        if (!items.some((item) => item.foodId === sourceFoodId)) return;
-        items.forEach((item) => addPair(item.foodId, item.grams, day.date, 1));
-      });
-    });
-
-    (state.mealTemplates || []).forEach((template) => {
-      const items = (template.items || []).filter((item) => activeById.has(item.foodId));
-      if (!items.some((item) => item.foodId === sourceFoodId)) return;
-      items.forEach((item) => addPair(item.foodId, item.grams, template.updatedAt || template.createdAt, 0.75));
-    });
-
-    return stats;
-  }
-
-  function mealFoodIdSet(meal) {
-    return new Set(mealFoods(meal).map((item) => item.foodId).filter(Boolean));
-  }
-
-  function mealFoodCategories(meal, activeById) {
-    return new Set(mealFoods(meal)
-      .map((item) => activeById.get(item.foodId))
-      .filter(Boolean)
-      .map(foodCategory));
-  }
-
-  function violatesMeatFishRule(sourceFood, candidateFood, meal, activeById) {
-    const mealCategories = mealFoodCategories(meal, activeById);
-    const sourceCategory = foodCategory(sourceFood);
-    const candidateCategory = foodCategory(candidateFood);
-    const mealHasMeat = mealCategories.has("meat");
-    const mealHasFish = mealCategories.has("fish");
-    const hasMeat = sourceCategory === "meat" || mealHasMeat;
-    const hasFish = sourceCategory === "fish" || mealHasFish;
-
-    return (candidateCategory === "meat" && hasFish)
-      || (candidateCategory === "fish" && hasMeat)
-      || (candidateCategory === "meat" && mealHasMeat)
-      || (candidateCategory === "fish" && mealHasFish);
-  }
-
   function foodCombinationRecommendations(sourceFood, meal, limit = 4) {
-    const active = activeFoods();
-    const activeById = new Map(active.map((food) => [food.id, food]));
-    const blockedIds = mealFoodIdSet(meal);
-    blockedIds.add(sourceFood.id);
-
-    const stats = combinationStatsForFood(sourceFood.id);
-    const semanticIds = semanticPairingIds(sourceFood, activeById);
-    const semanticRank = new Map(semanticIds.map((id, index) => [id, index]));
-    const byId = new Map();
-
-    active.forEach((food) => {
-      if (blockedIds.has(food.id)) return;
-      if (violatesMeatFishRule(sourceFood, food, meal, activeById)) return;
-
-      const stat = stats.get(food.id);
-      const semanticIndex = semanticRank.has(food.id) ? semanticRank.get(food.id) : null;
-      const categoryScore = categoryPairingScore(sourceFood, food);
-      const semanticScore = semanticIndex === null ? 0 : Math.max(25, 110 - semanticIndex * 12);
-      const historicalScore = stat ? stat.count * 140 : 0;
-      const score = historicalScore + semanticScore + Math.max(0, categoryScore);
-
-      if (score <= 0) return;
-      byId.set(food.id, {
-        food,
-        grams: preferredGramsForFood(food, stat?.gramsCounts),
-        count: stat ? stat.count : 0,
-        source: stat ? "habitual" : "encaja",
-        score
-      });
+    return FoodCombinations.recommend({
+      sourceFood,
+      meal,
+      foods: activeFoods(),
+      days: state.days,
+      mealTemplates: state.mealTemplates,
+      limit
     });
-
-    const fallback = active
-      .filter((food) => !blockedIds.has(food.id)
-        && !byId.has(food.id)
-        && !violatesMeatFishRule(sourceFood, food, meal, activeById))
-      .map((food) => ({
-        food,
-        grams: preferredGramsForFood(food),
-        count: 0,
-        source: "encaja",
-        score: categoryPairingScore(sourceFood, food)
-      }))
-      .sort((a, b) => b.score - a.score || a.food.name.localeCompare(b.food.name, "es", { sensitivity: "base" }));
-
-    fallback.forEach((item) => {
-      if (byId.size >= active.length) return;
-      byId.set(item.food.id, item);
-    });
-
-    return [...byId.values()]
-      .sort((a, b) => b.score - a.score
-        || b.count - a.count
-        || a.food.name.localeCompare(b.food.name, "es", { sensitivity: "base" }))
-      .slice(0, limit);
   }
 
   function frequentFoodSuggestions(limit = 5) {
@@ -1897,7 +926,7 @@
     Object.values(state.days || {}).forEach((day) => {
       if (!day) return;
       (day.meals || []).forEach((meal) => {
-        mealFoods(meal).forEach((item) => {
+        MealItems.list(meal).forEach((item) => {
           const food = activeById.get(item.foodId);
           const grams = Nutrition.number(item.grams);
           if (!food || grams <= 0) return;
@@ -1950,9 +979,36 @@
     return suggestions.slice(0, limit);
   }
 
+  function selectedFoodByMealIdForRender(active = activeFoods()) {
+    const activeIds = new Set(active.map((food) => food.id));
+    const selected = new Map();
+    uiState.selectedFoodByMealId.forEach((foodId, mealId) => {
+      if (activeIds.has(foodId)) selected.set(mealId, foodId);
+    });
+    return selected;
+  }
+
+  function mealTemplatesForRender() {
+    return (state.mealTemplates || []).map((template) => ({
+      ...template,
+      total: mealTemplateTotal(template),
+      itemCount: (template.items || []).length,
+      hasSnapshot: Array.isArray(template.itemSnapshots) && template.itemSnapshots.length
+    }));
+  }
+
+  function savedTemplateMealIdsForRender(day) {
+    const ids = new Set();
+    (day.meals || []).forEach((meal) => {
+      const items = mealTemplateItemsFromMeal(meal);
+      if (findMealTemplateBySignature(items)) ids.add(meal.id);
+    });
+    return ids;
+  }
+
   function targetMealForFrequentFood(day) {
-    let meal = day.meals.find((item) => !mealFoods(item).length)
-      || [...day.meals].reverse().find((item) => mealFoods(item).length)
+    let meal = day.meals.find((item) => !MealItems.list(item).length)
+      || [...day.meals].reverse().find((item) => MealItems.list(item).length)
       || day.meals[0];
 
     if (!meal) {
@@ -1963,8 +1019,16 @@
     return meal;
   }
 
-  function currentRecommendationContext(day) {
-    const selectedMeal = (day.meals || []).find((meal) => isMealAddOpen(meal) && selectedFoodForMeal(meal));
+  function targetMealNameForFrequentFood(day) {
+    const meals = Array.isArray(day.meals) ? day.meals : [];
+    const meal = meals.find((item) => !MealItems.list(item).length)
+      || [...meals].reverse().find((item) => MealItems.list(item).length)
+      || meals[0];
+    return meal?.name || "la comida";
+  }
+
+  function recommendationContextForRender(day) {
+    const selectedMeal = (day.meals || []).find((meal) => uiState.addFoodMealIds.has(meal.id) && selectedFoodForMeal(meal));
     if (selectedMeal) {
       return {
         meal: selectedMeal,
@@ -1979,7 +1043,7 @@
     const focus = uiState.recommendationFocus;
     if (focus) {
       const meal = (day.meals || []).find((item) => item.id === focus.mealId);
-      const item = meal ? mealFoods(meal).find((mealItem) => mealItem.id === focus.itemId && mealItem.foodId === focus.foodId) : null;
+      const item = meal ? MealItems.list(meal).find((mealItem) => mealItem.id === focus.itemId && mealItem.foodId === focus.foodId) : null;
       const sourceFood = item ? activeFoods().find((food) => food.id === item.foodId) : null;
       if (meal && item && sourceFood) {
         return {
@@ -1991,12 +1055,11 @@
           titlePrefix: "Combina con"
         };
       }
-      uiState.recommendationFocus = null;
     }
 
     for (let index = (day.meals || []).length - 1; index >= 0; index -= 1) {
       const meal = day.meals[index];
-      const items = mealFoods(meal);
+      const items = MealItems.list(meal);
       for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex -= 1) {
         const item = items[itemIndex];
         const sourceFood = activeFoods().find((food) => food.id === item.foodId);
@@ -2016,612 +1079,151 @@
     return null;
   }
 
-  function renderContextualFoodSuggestions(day) {
-    const context = currentRecommendationContext(day);
-    if (!context) return "";
+  function smartFoodSuggestionForRender(day) {
+    const context = recommendationContextForRender(day);
+    if (context) {
+      const recommendations = foodCombinationRecommendations(context.sourceFood, context.meal, 4);
+      if (recommendations.length) {
+        return {
+          type: "contextual",
+          mealId: context.meal.id,
+          title: `${context.titlePrefix} ${context.sourceFood.name}`,
+          targetName: context.meal?.name || "la comida",
+          sourceFoodId: context.sourceFood.id,
+          sourceItemId: context.item.id || "",
+          sourceContext: context.sourceContext,
+          recommendations
+        };
+      }
+    }
 
-    const recommendations = foodCombinationRecommendations(context.sourceFood, context.meal, 4);
-    if (!recommendations.length) return "";
-
-    const targetName = context.meal?.name || "la comida";
-
-    return `
-      <section class="frequent-food-panel is-contextual-combo" data-meal-id="${escapeHtml(context.meal.id)}" aria-labelledby="frequent-food-title">
-        <div class="frequent-food-head">
-          <div>
-            <strong id="frequent-food-title">${escapeHtml(`${context.titlePrefix} ${context.sourceFood.name}`)}</strong>
-          </div>
-        </div>
-        <div class="frequent-food-list">
-          ${recommendations.map((recommendation) => {
-            const toneClass = macroToneClass(recommendation.food);
-            const toneLabel = recommendation.source === "habitual" ? "Lo sueles combinar" : macroToneLabel(recommendation.food);
-            const sprite = renderFoodSprite(recommendation.food);
-            return `
-              <button
-                class="frequent-food-card ${toneClass} ${sprite ? "has-sprite" : ""}"
-                type="button"
-                data-action="add-food-combo"
-                data-food-id="${escapeHtml(recommendation.food.id)}"
-                data-grams="${escapeHtml(recommendation.grams)}"
-                data-source-food-id="${escapeHtml(context.sourceFood.id)}"
-                data-source-item-id="${escapeHtml(context.item.id || "")}"
-                data-source-context="${escapeHtml(context.sourceContext)}"
-                aria-label="${escapeHtml(`Añadir ${formatMacro(recommendation.grams)} g de ${recommendation.food.name} a ${targetName}`)}"
-              >
-                ${sprite}
-                <strong>${escapeHtml(recommendation.food.name)}</strong>
-                <span>${formatMacro(recommendation.grams)} g · ${escapeHtml(combinationReason(recommendation))}</span>
-                <small>${escapeHtml(toneLabel)}</small>
-              </button>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderSmartFoodSuggestions(day) {
-    return renderContextualFoodSuggestions(day) || renderFrequentFoodSuggestions(day);
-  }
-
-  function renderFrequentFoodSuggestions(day) {
     const suggestions = frequentFoodSuggestions(5);
-    if (!suggestions.length) return "";
+    if (!suggestions.length) return null;
 
-    const targetMeal = targetMealForFrequentFood(day);
-    const targetName = targetMeal?.name || "la comida";
-
-    return `
-      <section class="frequent-food-panel" aria-labelledby="frequent-food-title">
-        <div class="frequent-food-head">
-          <div>
-            <strong id="frequent-food-title">Comes a menudo</strong>
-          </div>
-        </div>
-        <div class="frequent-food-list">
-          ${suggestions.map((suggestion) => {
-            const timesLabel = suggestion.count === 1
-              ? "1 vez"
-              : suggestion.count > 1 ? `${suggestion.count} veces` : "favorito";
-            const toneClass = macroToneClass(suggestion.food);
-            const toneLabel = macroToneLabel(suggestion.food);
-            const sprite = renderFoodSprite(suggestion.food);
-            return `
-              <button
-                class="frequent-food-card ${toneClass} ${sprite ? "has-sprite" : ""}"
-                type="button"
-                data-action="add-frequent-food"
-                data-food-id="${escapeHtml(suggestion.food.id)}"
-                data-grams="${escapeHtml(suggestion.grams)}"
-                aria-label="${escapeHtml(`Añadir ${formatMacro(suggestion.grams)} g de ${suggestion.food.name} a ${targetName}`)}"
-              >
-                ${sprite}
-                <strong>${escapeHtml(suggestion.food.name)}</strong>
-                <span>${formatMacro(suggestion.grams)} g habitual · ${timesLabel}</span>
-                <small>${toneLabel}</small>
-              </button>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `;
+    return {
+      type: "frequent",
+      targetName: targetMealNameForFrequentFood(day),
+      suggestions
+    };
   }
 
-  function renderMealMacros(macros) {
-    return `
-      <span class="meal-macros" aria-label="${escapeHtml(`Proteína ${formatMacro(macros.protein)}g, carbohidratos ${formatMacro(macros.carbs)}g, grasas ${formatMacro(macros.fat)}g`)}">
-        <span class="meal-macro is-protein">P ${formatMacro(macros.protein)}g</span>
-        <span class="meal-macro-separator" aria-hidden="true">/</span>
-        <span class="meal-macro is-carbs">C ${formatMacro(macros.carbs)}g</span>
-        <span class="meal-macro-separator" aria-hidden="true">/</span>
-        <span class="meal-macro is-fat">G ${formatMacro(macros.fat)}g</span>
-      </span>
-    `;
-  }
-
-  function isFoodComboOpen(meal, item) {
-    return uiState.comboContext
-      && uiState.comboContext.mealId === meal.id
-      && uiState.comboContext.itemId === item.id
-      && uiState.comboContext.foodId === item.foodId;
-  }
-
-  function combinationReason(recommendation) {
-    if (recommendation.source !== "habitual") return "Encaja bien";
-    const uses = Math.max(1, Math.round(recommendation.count));
-    return uses === 1 ? "Ya lo combinaste" : `${uses} veces contigo`;
-  }
-
-  function renderFoodComboPanel(sourceFood, meal, item, options = {}) {
-    const recommendations = foodCombinationRecommendations(sourceFood, meal, 4);
-    if (!recommendations.length) return "";
-
-    return `
-      <section class="food-combo-panel ${escapeHtml(options.className || "")}" aria-label="${escapeHtml(`Alimentos que combinan con ${sourceFood.name}`)}">
-        <div class="food-combo-head">
-          <span>Combina con</span>
-          <strong>${escapeHtml(sourceFood.name)}</strong>
-        </div>
-        <div class="food-combo-list">
-          ${recommendations.map((recommendation) => {
-            const sprite = renderFoodSprite(recommendation.food);
-            return `
-              <button
-                class="food-combo-card ${macroToneClass(recommendation.food)} ${sprite ? "has-sprite" : ""}"
-                type="button"
-                data-action="add-food-combo"
-                data-food-id="${escapeHtml(recommendation.food.id)}"
-                data-grams="${escapeHtml(recommendation.grams)}"
-                data-source-food-id="${escapeHtml(sourceFood.id)}"
-                data-source-item-id="${escapeHtml(item.id || "")}"
-                data-source-context="${escapeHtml(options.sourceContext || "meal-item")}"
-              >
-                ${sprite}
-                <span>
-                  <strong>${escapeHtml(recommendation.food.name)}</strong>
-                  <small>${formatMacro(recommendation.grams)} g · ${escapeHtml(combinationReason(recommendation))}</small>
-                </span>
-              </button>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderMealItem(item, meal) {
-    const food = Nutrition.findFoodById(state.foods, item.foodId);
-    if (!food && item.foodSnapshot) return renderSnapshotMealItem({
-      id: item.id,
-      foodName: item.foodSnapshot.name,
-      grams: item.grams,
-      macros: Nutrition.foodMacros(item.foodSnapshot.per100 || {}, item.grams)
-    });
-    if (!food) return "";
-    const macros = Nutrition.foodMacros(food, item.grams);
-    const sprite = renderFoodSprite(food);
-    const isComboOpen = isFoodComboOpen(meal, item);
-
-    return `
-      <div class="food-row ${macroToneClass(macros)}" data-item-id="${item.id}">
-        <button
-          class="food-main food-combo-trigger ${sprite ? "has-sprite" : ""} ${isComboOpen ? "is-active" : ""}"
-          type="button"
-          data-action="show-food-combos"
-          data-food-id="${escapeHtml(food.id)}"
-          data-item-id="${escapeHtml(item.id)}"
-          aria-expanded="${isComboOpen ? "true" : "false"}"
-          aria-label="${escapeHtml(`Ver alimentos que combinan con ${food.name}`)}"
-        >
-          ${sprite}
-          <span class="food-copy">
-            <strong>${escapeHtml(food.name)}</strong>
-            <span class="food-amount">${formatMacro(item.grams)} g</span>
-          </span>
-        </button>
-        <button class="icon-button soft danger-action" type="button" data-action="remove-item" title="Quitar alimento" aria-label="Quitar alimento">${icon("trash")}</button>
-      </div>
-      ${isComboOpen ? renderFoodComboPanel(food, meal, item) : ""}
-    `;
-  }
-
-  function renderReadOnlyMealItem(item) {
-    const food = Nutrition.findFoodById(state.foods, item.foodId);
-    if (!food && item.foodSnapshot) return renderSnapshotMealItem({
-      id: item.id,
-      foodName: item.foodSnapshot.name,
-      grams: item.grams,
-      macros: Nutrition.foodMacros(item.foodSnapshot.per100 || {}, item.grams)
-    });
-
-    const foodName = food ? food.name : "Alimento guardado";
-    const macros = food ? Nutrition.foodMacros(food, item.grams) : Nutrition.zeroMacros();
-    return renderSnapshotMealItem({
-      id: item.id,
-      foodName,
-      grams: item.grams,
-      macros
-    });
-  }
-
-  function renderSnapshotMealItem(item) {
-    const macros = item.macros || Nutrition.zeroMacros();
-    const sprite = renderFoodSprite(item.foodId || item.foodName);
-    return `
-      <div class="food-row ${macroToneClass(macros)}" data-item-id="${escapeHtml(item.id)}">
-        <div class="food-main ${sprite ? "has-sprite" : ""}">
-          ${sprite}
-          <span class="food-copy">
-            <strong>${escapeHtml(item.foodName || "Alimento guardado")}</strong>
-            <span class="food-amount">${formatMacro(item.grams)} g</span>
-          </span>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderSummary(renderContext) {
-    const { summary } = renderContext;
-    const totals = summary.total;
-    const targets = summary.targets;
-    const energy = summary.energy;
-    const kcalRange = summary.kcalRange;
-    const diagnosis = summary.diagnosis;
-
-    refs.macroSummary.innerHTML = `
-      <section class="summary-hero ${diagnosis.className}">
-        <h2>${escapeHtml(diagnosis.action)}</h2>
-        <p>${energy.metric}</p>
-        <small>${escapeHtml(diagnosis.body)}</small>
-      </section>
-      <section class="diagnosis-card ${diagnosis.className}" aria-labelledby="diagnosis-title">
-        <div class="diagnosis-head">
-          <span>Guía del día</span>
-          <strong>${escapeHtml(diagnosis.priority)}</strong>
-        </div>
-        <h3 id="diagnosis-title">${escapeHtml(diagnosis.title)}</h3>
-        ${renderDiagnosisSuggestions(
-          renderContext.day.savedAt || uiState.view === "foods" ? [] : diagnosis.suggestions,
-          suggestionTargetMealLabel(renderContext.day)
-        )}
-      </section>
-      <details class="summary-more">
-        <summary>Ver números del día</summary>
-        <div class="target-strip">
-          <div>
-            <span>Óptimo</span>
-            <strong>${formatMacro(targets.kcal)} kcal</strong>
-          </div>
-          <div>
-            <span>Mant.</span>
-            <strong>${formatMacro(targets.maintenance)} kcal</strong>
-          </div>
-          <div>
-            <span>Act.</span>
-            <strong>x${Nutrition.formatNumber(targets.activityMultiplier, 2)}</strong>
-          </div>
-        </div>
-        <div class="kcal-range-note">
-          Rango ${formatMacro(kcalRange.min)}-${formatMacro(kcalRange.max)} kcal
-        </div>
-        <div class="summary-focus-list">
-          ${renderNutritionFocus(summary.focus)}
-        </div>
-      </details>
-    `;
+  function comboRecommendationsForRender(day) {
+    if (!uiState.comboContext) return [];
+    const meal = (day.meals || []).find((item) => item.id === uiState.comboContext.mealId);
+    const item = meal ? MealItems.list(meal).find((mealItem) => mealItem.id === uiState.comboContext.itemId && mealItem.foodId === uiState.comboContext.foodId) : null;
+    const food = item ? activeFoods().find((activeFood) => activeFood.id === item.foodId) : null;
+    return meal && item && food ? foodCombinationRecommendations(food, meal, 4) : [];
   }
 
   function suggestionTargetMealLabel(day) {
     if (!day.meals.length) return "Comida 1";
-    const meal = day.meals.find((item) => !mealFoods(item).length)
+    const meal = day.meals.find((item) => !MealItems.list(item).length)
       || day.meals[day.meals.length - 1];
     return meal?.name || "Comida";
   }
 
-  function renderDiagnosisSuggestions(suggestions = [], targetMealName = "Comida") {
-    if (!suggestions.length) return "";
-
-    return `
-      <ul class="diagnosis-suggestions" aria-label="Sugerencias concretas">
-        ${suggestions.slice(0, 3).map((suggestion) => {
-          const grams = Nutrition.formatNumber(suggestion.grams || 0);
-          return `
-          <li>
-            <span class="diagnosis-dot" aria-hidden="true"></span>
-            <span>
-              <strong>${escapeHtml(suggestion.label)}</strong>
-              <small>${escapeHtml(suggestion.detail)}</small>
-            </span>
-            <button
-              type="button"
-              data-action="add-diagnosis-suggestion"
-              data-food-id="${escapeHtml(suggestion.foodId || "")}"
-              data-grams="${escapeHtml(suggestion.grams || "")}"
-              aria-label="${escapeHtml(`Añadir ${grams} g de ${suggestion.label} a ${targetMealName}`)}"
-            >Añadir</button>
-          </li>
-        `;
-        }).join("")}
-      </ul>
-    `;
-  }
-
-  function renderNutritionFocus(rows) {
-    return rows.map((row) => `
-      <div class="summary-focus-row ${row.className}">
-        <span>${escapeHtml(row.label)}</span>
-        <strong>${escapeHtml(row.value)}</strong>
-        <small>${escapeHtml(row.detail)}</small>
-      </div>
-    `).join("");
-  }
-
-  function renderMacroCards(renderContext) {
-    refs.macroCards.innerHTML = "";
-  }
-
-  function renderEquivalences(renderContext) {
-    const { equivalences, rangeLeft } = renderContext.summary;
-
-    refs.equivalences.innerHTML = `
-      <section class="equivalence-block">
-        <h3>Equivalencias útiles</h3>
-        ${renderEquivalenceGroup("Proteína", "protein", equivalences.protein, rangeLeft.protein)}
-        ${renderEquivalenceGroup("Carbohidratos", "carbs", equivalences.carbs, rangeLeft.carbs)}
-        ${renderEquivalenceGroup("Grasas", "fat", equivalences.fat, rangeLeft.fat)}
-      </section>
-    `;
-  }
-
-  function renderEquivalenceGroup(label, macro, items, remainingValue) {
-    if (remainingValue <= 0) {
-      return `
-        <details class="equivalence-details is-done">
-          <summary>
-            <span>${label}</span>
-            <strong>Cubierto</strong>
-          </summary>
-        </details>
-      `;
-    }
-
-    return `
-      <details class="equivalence-details" ${macro === "carbs" || macro === "fat" ? "open" : ""}>
-        <summary>
-          <span>${label}</span>
-          <strong>${formatMacro(remainingValue)}g por cubrir</strong>
-        </summary>
-        <ul>
-          ${items.map((item) => `
-            <li>
-              <span>${escapeHtml(item.food.name)}</span>
-              <strong>${formatMacro(item.grams)}g${servingText(item)}</strong>
-            </li>
-          `).join("")}
-        </ul>
-      </details>
-    `;
-  }
-
-  function servingText(item) {
-    if (!item.food.servingLabel || !item.servings) return "";
-    const servings = Nutrition.round(item.servings, 1);
-    const plural = servings > 1.05 ? "s" : "";
-    return ` / ${Nutrition.formatNumber(servings, 1)} ${item.food.servingLabel}${plural}`;
-  }
-
-  function renderFoodManager() {
-    const foods = filterManagedFoods();
-    const favorites = activeFoods().filter((food) => food.favorite).length;
-
-    refs.libraryPanel.innerHTML = `
-      <div class="food-manager-head">
-        <div>
-          <p>Biblioteca</p>
-          <h2>Alimentos</h2>
-        </div>
-        <div class="food-manager-stats">
-          <span>${activeFoods().length} activos</span>
-          <span>${favorites} favoritos</span>
-        </div>
-      </div>
-      <div class="food-toolbar">
-        <label class="field">
-          <span>Buscar</span>
-          <input name="foodSearch" type="search" placeholder="Salmón, arroz, queso..." value="${escapeHtml(uiState.foodSearch)}">
-        </label>
-      </div>
-      <details class="food-create">
-        <summary>+ Añadir alimento</summary>
-        ${renderFoodForm(null, "create-food")}
-      </details>
-      <div class="food-card-list">
-        ${renderManagedFoodList(foods)}
-      </div>
-    `;
-  }
-
-  function renderManagedFoodList(foods = filterManagedFoods()) {
-    if (!foods.length) return `<p class="empty-copy">No hay alimentos con ese filtro.</p>`;
-    return foods.map((food) => renderFoodCard(food)).join("");
-  }
-
-  function filterManagedFoods() {
-    const query = Nutrition.normalize(uiState.foodSearch);
-    const foods = sortFoods(activeFoods());
-    if (!query) return foods;
-
-    return foods.filter((food) => {
-      const names = [food.name, ...(food.aliases || [])].map(Nutrition.normalize);
-      return names.some((name) => name.includes(query));
+  function syncDayContextView(renderContext) {
+    refs.dayContext.innerHTML = DiaryRenderers.renderDayContext({
+      day: renderContext.day,
+      profile: state.profile,
+      summary: renderContext.summary,
+      hasRecoverableClosedDay: hasRecoverableClosedDay(),
+      recoverySourceDate: state.lastClosedDayRecovery?.sourceDate || "",
+      previousDaySuggestion: previousDaySuggestion(renderContext.day)
     });
   }
 
-  function renderFoodCard(food) {
-    if (uiState.editingFoodId === food.id) {
-      return `
-        <article class="food-card is-editing" data-food-id="${escapeHtml(food.id)}">
-          <div class="food-card-top">
-            <strong>Editar alimento</strong>
-            <button class="icon-button soft" type="button" data-action="cancel-edit-food" aria-label="Cancelar edición">x</button>
-          </div>
-          ${renderFoodForm(food, "update-food")}
-        </article>
-      `;
-    }
-
-    const macroLabel = `Macros por 100g: proteína ${formatMacro(food.protein)}g, carbohidratos ${formatMacro(food.carbs)}g, grasas ${formatMacro(food.fat)}g`;
-
-    const sprite = renderFoodSprite(food);
-
-    return `
-      <article class="food-card" data-food-id="${escapeHtml(food.id)}">
-        <div class="food-card-main ${sprite ? "has-sprite" : ""}">
-          ${sprite}
-          <div class="food-card-copy">
-            <div class="food-card-title">
-              <strong>${escapeHtml(food.name)}</strong>
-              <span>${formatMacro(food.kcal)} kcal/100g</span>
-            </div>
-            <div class="food-macro-tags">
-              <span>P ${formatMacro(food.protein)}g</span>
-              <span>C ${formatMacro(food.carbs)}g</span>
-              <span>G ${formatMacro(food.fat)}g</span>
-              <span>F ${formatMacro(food.fiber || 0)}g</span>
-            </div>
-          </div>
-          <div class="macro-donut-wrap" role="img" aria-label="${escapeHtml(macroLabel)}">
-            <div class="macro-donut" style="${donutStyle(food)}" aria-hidden="true"></div>
-          </div>
-        </div>
-        <div class="food-card-actions">
-          <button class="star-button ${food.favorite ? "is-active" : ""}" type="button" data-action="toggle-favorite" title="Favorito" aria-label="${food.favorite ? "Quitar de favoritos" : "Añadir a favoritos"}">${icon(food.favorite ? "starFilled" : "star")}</button>
-          <button class="ghost-action icon-action compact-action" type="button" data-action="edit-food" title="Editar alimento" aria-label="Editar alimento">${icon("pencil")}</button>
-          <button class="ghost-action icon-action compact-action danger-action" type="button" data-action="delete-food" title="Eliminar alimento" aria-label="Eliminar alimento">${icon("trash")}</button>
-        </div>
-      </article>
-    `;
+  function syncMealsView(renderContext) {
+    const active = activeFoods();
+    refs.meals.innerHTML = DiaryRenderers.renderMeals({
+      day: renderContext.day,
+      summary: renderContext.summary,
+      foods: state.foods,
+      activeFoods: active,
+      mealTemplates: mealTemplatesForRender(),
+      selectedFoodByMealId: selectedFoodByMealIdForRender(active),
+      collapsedMealIds: new Set(uiState.collapsedMealIds),
+      addFoodMealIds: new Set(uiState.addFoodMealIds),
+      comboContext: uiState.comboContext ? { ...uiState.comboContext } : null,
+      comboRecommendations: comboRecommendationsForRender(renderContext.day),
+      savedTemplateMealIds: savedTemplateMealIdsForRender(renderContext.day),
+      smartSuggestion: smartFoodSuggestionForRender(renderContext.day)
+    });
   }
 
-  function renderFoodForm(food, action) {
-    const values = food || {
-      name: "",
-      kcal: "",
-      protein: "",
-      carbs: "",
-      fat: "",
-      fiber: 0,
-      servingLabel: "ración",
-      servingGrams: 100
-    };
-
-    return `
-      <form class="library-form" data-action="${action}" ${food ? `data-food-id="${escapeHtml(food.id)}"` : ""} novalidate>
-        <div class="custom-grid">
-          <label class="field">
-            <span>Nombre</span>
-            <input name="name" value="${escapeHtml(values.name)}" placeholder="Merluza" required>
-          </label>
-          <label class="field">
-            <span>kcal/100g</span>
-            <input name="kcal" type="number" min="0" step="1" value="${escapeHtml(values.kcal)}" required>
-          </label>
-          <label class="field">
-            <span>Proteína</span>
-            <input name="protein" type="number" min="0" step="0.1" value="${escapeHtml(values.protein)}" required>
-          </label>
-          <label class="field">
-            <span>Carbohidratos</span>
-            <input name="carbs" type="number" min="0" step="0.1" value="${escapeHtml(values.carbs)}" required>
-          </label>
-          <label class="field">
-            <span>Grasas</span>
-            <input name="fat" type="number" min="0" step="0.1" value="${escapeHtml(values.fat)}" required>
-          </label>
-          <label class="field">
-            <span>Fibra</span>
-            <input name="fiber" type="number" min="0" step="0.1" value="${escapeHtml(values.fiber || 0)}">
-          </label>
-          <label class="field">
-            <span>Etiqueta ración</span>
-            <input name="servingLabel" value="${escapeHtml(values.servingLabel || "ración")}" placeholder="ración">
-          </label>
-          <label class="field">
-            <span>Gramos/ración</span>
-            <input name="servingGrams" type="number" min="1" step="1" value="${escapeHtml(values.servingGrams || 100)}">
-          </label>
-        </div>
-        <div class="library-form-actions">
-          <button class="secondary-action" type="submit">${food ? "Guardar cambios" : "Guardar alimento"}</button>
-          ${food ? `<button class="ghost-action" type="button" data-action="cancel-edit-food">Cancelar</button>` : ""}
-        </div>
-      </form>
-    `;
+  function syncSummaryView(renderContext) {
+    refs.macroSummary.innerHTML = DiaryRenderers.renderSummary({
+      day: renderContext.day,
+      summary: renderContext.summary,
+      showDiagnosisSuggestions: uiState.view !== "foods",
+      targetMealName: suggestionTargetMealLabel(renderContext.day)
+    });
   }
 
-  function donutStyle(food) {
-    const protein = Math.max(Nutrition.number(food.protein) * 4, 0);
-    const carbs = Math.max(Nutrition.number(food.carbs) * 4, 0);
-    const fat = Math.max(Nutrition.number(food.fat) * 9, 0);
-    const total = protein + carbs + fat;
-    if (!total) return "background: var(--macro-empty)";
+  function syncMacroCardsView(renderContext) {
+    refs.macroCards.innerHTML = DiaryRenderers.renderMacroCards({
+      summary: renderContext.summary
+    });
+  }
 
-    const proteinEnd = (protein / total) * 100;
-    const carbsEnd = proteinEnd + (carbs / total) * 100;
-    return `background: conic-gradient(var(--macro-protein) 0 ${proteinEnd}%, var(--macro-carbs) ${proteinEnd}% ${carbsEnd}%, var(--macro-fat) ${carbsEnd}% 100%)`;
+  function syncEquivalencesView(renderContext) {
+    refs.equivalences.innerHTML = DiaryRenderers.renderEquivalences({
+      summary: renderContext.summary
+    });
+  }
+
+
+  function savedHistoryDaysForRender() {
+    return Object.values(state.days)
+      .filter((day) => day.savedAt)
+      .map((day) => ({
+        ...day,
+        total: dayTotalForHistory(day)
+      }));
   }
 
   function renderHistory() {
-    const savedDays = Object.values(state.days)
-      .filter((day) => day.savedAt)
-      .sort((a, b) => b.date.localeCompare(a.date));
-
-    if (!savedDays.length) {
-      refs.history.innerHTML = `<p class="empty-copy">Cuando registres un día aparecerá aquí.</p>`;
-      return;
-    }
-
-    refs.history.innerHTML = `
-      <div class="history-list">
-        ${savedDays.map((day) => renderHistoryDay(day)).join("")}
-      </div>
-    `;
-  }
-
-  function renderHistoryDay(day) {
-    const total = dayTotalForHistory(day);
-    const repeatLabel = "Repetir este día en el día actual";
-    return `
-      <div class="history-row">
-        <button class="history-open-button" type="button" data-action="load-day" data-date="${escapeHtml(day.date)}">
-          <strong>${formatDate(day.date)}</strong>
-          <span>${formatMacro(total.kcal)} kcal</span>
-        </button>
-        <div class="history-side">
-          <div class="history-macros">
-            <span class="macro-text is-protein">P ${formatMacro(total.protein)}g</span>
-            <span class="macro-text is-carbs">C ${formatMacro(total.carbs)}g</span>
-            <span class="macro-text is-fat">G ${formatMacro(total.fat)}g</span>
-          </div>
-          <button class="secondary-action history-repeat-action" type="button" data-action="repeat-day" data-date="${escapeHtml(day.date)}" title="${repeatLabel}" aria-label="${repeatLabel}">Repetir hoy</button>
-        </div>
-      </div>
-    `;
+    refs.history.innerHTML = HistoryRenderers.renderHistory({
+      days: savedHistoryDaysForRender()
+    });
   }
 
   function renderAnalysis(renderContext) {
-    const savedDays = Object.values(state.days)
-      .filter((day) => day.savedAt)
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 7);
+    refs.analysis.innerHTML = HistoryRenderers.renderAnalysis({
+      days: savedHistoryDaysForRender(),
+      targets: renderContext.summary.targets
+    });
+  }
 
-    if (!savedDays.length) {
-      refs.analysis.innerHTML = "";
-      return;
-    }
 
-    const totals = savedDays.reduce((acc, day) => {
-      addTotals(acc, dayTotalForHistory(day));
-      return acc;
-    }, Nutrition.zeroMacros());
+  function filteredLibraryFoods() {
+    return FoodLibraryRenderers.filterFoods({
+      foods: activeFoods(),
+      query: uiState.foodSearch
+    });
+  }
 
-    const days = savedDays.length;
-    const avg = Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, value / days]));
-    const targets = renderContext.summary.targets;
+  function renderFoodManager() {
+    const active = activeFoods();
+    const foods = FoodLibraryRenderers.filterFoods({
+      foods: active,
+      query: uiState.foodSearch
+    });
 
-    refs.analysis.innerHTML = `
-      <section class="analysis-block">
-        <h3>Media últimos ${days}</h3>
-        <div class="analysis-grid">
-          <span class="analysis-metric macro-kcal">kcal <strong>${formatMacro(avg.kcal)}</strong></span>
-          <span class="analysis-metric macro-protein">Prot <strong>${formatMacro(avg.protein)}g</strong></span>
-          <span class="analysis-metric macro-carbs">Carb <strong>${formatMacro(avg.carbs)}g</strong></span>
-          <span class="analysis-metric macro-fat">Grasa <strong>${formatMacro(avg.fat)}g</strong></span>
-        </div>
-        <p>${formatMacro((avg.protein / Math.max(targets.protein, 1)) * 100)}% de la proteína objetivo.</p>
-      </section>
-    `;
+    refs.libraryPanel.innerHTML = FoodLibraryRenderers.renderManager({
+      foods,
+      activeCount: active.length,
+      favoriteCount: active.filter((food) => food.favorite).length,
+      query: uiState.foodSearch,
+      editingFoodId: uiState.editingFoodId
+    });
+  }
+
+  function renderManagedFoodList(foods = filteredLibraryFoods()) {
+    return FoodLibraryRenderers.renderList({
+      foods,
+      editingFoodId: uiState.editingFoodId
+    });
   }
 
   function addTotals(total, macros) {
@@ -2694,7 +1296,7 @@
     });
 
     nextProfile.profileName = String(nextProfile.profileName || "").trim() || "Mi perfil";
-    if (!PROFILE_PIXEL_SPRITES[nextProfile.avatarId]) nextProfile.avatarId = profileAvatarId(nextProfile);
+    if (!hasProfileAvatar(nextProfile.avatarId)) nextProfile.avatarId = profileAvatarId(nextProfile);
 
     state.profile = nextProfile;
     uiState.view = "diary";
@@ -2741,7 +1343,7 @@
     const day = currentDay();
     if (day.savedAt) {
       showToast("Los días guardados son de solo lectura.");
-      renderDayContext(getRenderContext());
+      syncDayContextView(getRenderContext());
       return;
     }
 
@@ -2765,8 +1367,8 @@
 
     const day = currentDay();
     if (day.savedAt) {
-      showToast("Los dÃ­as guardados son de solo lectura.");
-      renderDayContext(getRenderContext());
+      showToast("Los días guardados son de solo lectura.");
+      syncDayContextView(getRenderContext());
       return;
     }
 
@@ -3001,11 +1603,11 @@
     }
 
     const day = currentDay();
-    const emptyMeal = day.meals.find((meal) => !mealFoods(meal).length);
+    const emptyMeal = day.meals.find((meal) => !MealItems.list(meal).length);
     const meal = emptyMeal || createMeal(template.name, true);
     meal.name = template.name;
     meal.manuallyAdded = true;
-    setMealFoods(meal, items);
+    MealItems.set(meal, items);
 
     if (!emptyMeal) day.meals.push(meal);
 
@@ -3017,16 +1619,16 @@
     saveAndRender(`${template.name} añadida.`);
   }
 
-  function removeMealTemplate(templateId) {
+  async function removeMealTemplate(templateId) {
     const template = mealTemplateById(templateId);
     if (!template) return;
-    if (!confirmDanger(`Eliminar ${template.name} de comidas guardadas?`)) return;
+    if (!(await confirmDanger(`Eliminar ${template.name} de comidas guardadas?`))) return;
 
     state.mealTemplates = (state.mealTemplates || []).filter((item) => item.id !== templateId);
     saveAndRender("Comida guardada eliminada.");
   }
 
-  function handleMealsClick(event) {
+  async function handleMealsClick(event) {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
     const readOnlyActions = new Set([
@@ -3056,7 +1658,7 @@
     }
 
     if (button.dataset.action === "remove-meal-template") {
-      removeMealTemplate(templateId);
+      await removeMealTemplate(templateId);
       return;
     }
 
@@ -3098,7 +1700,7 @@
 
     if (button.dataset.action === "show-food-combos" && meal) {
       const itemId = button.dataset.itemId || event.target.closest("[data-item-id]")?.dataset.itemId || "";
-      const item = mealFoods(meal).find((mealItem) => mealItem.id === itemId);
+      const item = MealItems.list(meal).find((mealItem) => mealItem.id === itemId);
       if (!item) return;
 
       const sameContext = uiState.comboContext
@@ -3116,7 +1718,7 @@
         itemId: item.id,
         foodId: item.foodId
       };
-      renderMeals(getRenderContext());
+      syncMealsView(getRenderContext());
       return;
     }
 
@@ -3124,7 +1726,7 @@
       const food = activeFoods().find((item) => item.id === button.dataset.foodId);
       const grams = parseGramsValue(button.dataset.grams);
       if (!food || grams <= 0) {
-        showToast("Esa combinaciÃ³n ya no estÃ¡ disponible.");
+        showToast("Esa combinación ya no está disponible.");
         return;
       }
 
@@ -3139,7 +1741,7 @@
         uiState.addFoodMealIds.add(meal.id);
         uiState.comboContext = null;
       } else {
-        const sourceItem = mealFoods(meal).find((mealItem) => mealItem.id === button.dataset.sourceItemId) || item;
+        const sourceItem = MealItems.list(meal).find((mealItem) => mealItem.id === button.dataset.sourceItemId) || item;
         uiState.recommendationFocus = {
           mealId: meal.id,
           itemId: sourceItem.id,
@@ -3151,7 +1753,7 @@
           foodId: sourceItem.foodId
         };
       }
-      saveAndRender(`${food.name} aÃ±adido a ${meal.name}.`);
+      saveAndRender(`${food.name} añadido a ${meal.name}.`);
       return;
     }
 
@@ -3166,24 +1768,24 @@
       } else {
         uiState.collapsedMealIds.add(mealId);
       }
-      renderMeals(getRenderContext());
+      syncMealsView(getRenderContext());
       return;
     }
 
     if (button.dataset.action === "toggle-add-food" && meal) {
       uiState.addFoodMealIds.add(mealId);
-      renderMeals(getRenderContext());
+      syncMealsView(getRenderContext());
       return;
     }
 
     if (button.dataset.action === "remove-item" && meal) {
       const itemId = event.target.closest("[data-item-id]").dataset.itemId;
-      const items = mealFoods(meal);
+      const items = MealItems.list(meal);
       const itemIndex = items.findIndex((item) => item.id === itemId);
       if (itemIndex < 0) return;
 
       const removedItem = cloneValue(items[itemIndex]);
-      setMealFoods(meal, items.filter((item) => item.id !== itemId));
+      MealItems.set(meal, items.filter((item) => item.id !== itemId));
       if (uiState.comboContext?.mealId === mealId && uiState.comboContext?.itemId === itemId) {
         uiState.comboContext = null;
       }
@@ -3205,7 +1807,7 @@
 
     if (button.dataset.action === "remove-meal" && meal) {
       if (day.meals.length <= 1) {
-        const items = mealFoods(meal);
+        const items = MealItems.list(meal);
         if (!items.length) {
           uiState.addFoodMealIds.delete(mealId);
           uiState.collapsedMealIds.delete(mealId);
@@ -3216,10 +1818,10 @@
           return;
         }
 
-        if (!confirmDanger(`Vaciar ${meal.name}?`)) return;
+        if (!(await confirmDanger(`Vaciar ${meal.name}?`))) return;
 
         const removedItems = cloneValue(items);
-        setMealFoods(meal, []);
+        MealItems.set(meal, []);
         uiState.addFoodMealIds.delete(mealId);
         uiState.collapsedMealIds.delete(mealId);
         uiState.selectedFoodByMealId.delete(mealId);
@@ -3243,7 +1845,7 @@
         }, "Comida vaciada.");
         return;
       }
-      if (mealFoods(meal).length && !confirmDanger(`Eliminar ${meal.name}?`)) return;
+      if (MealItems.list(meal).length && !(await confirmDanger(`Eliminar ${meal.name}?`))) return;
       const mealIndex = day.meals.findIndex((item) => item.id === mealId);
       if (mealIndex < 0) return;
       const removedMeal = cloneValue(meal);
@@ -3287,8 +1889,8 @@
       if (!mealId) return;
 
       if (currentDay().savedAt) {
-        showToast("Los dÃ­as guardados son de solo lectura.");
-        renderMeals(getRenderContext());
+        showToast("Los días guardados son de solo lectura.");
+        syncMealsView(getRenderContext());
         return;
       }
 
@@ -3299,7 +1901,7 @@
         uiState.selectedFoodByMealId.delete(mealId);
         uiState.recommendationFocus = null;
       }
-      renderMeals(getRenderContext());
+      syncMealsView(getRenderContext());
       return;
     }
 
@@ -3308,7 +1910,7 @@
 
     if (currentDay().savedAt) {
       showToast("Los días guardados son de solo lectura.");
-      renderMeals(getRenderContext());
+      syncMealsView(getRenderContext());
       return;
     }
 
@@ -3326,7 +1928,7 @@
     if (list) list.innerHTML = renderManagedFoodList();
   }
 
-  function handleLibraryClick(event) {
+  async function handleLibraryClick(event) {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
@@ -3353,7 +1955,7 @@
     }
 
     if (button.dataset.action === "delete-food" && food) {
-      if (!confirmDanger(`Eliminar ${food.name} de la biblioteca?`)) return;
+      if (!(await confirmDanger(`Eliminar ${food.name} de la biblioteca?`))) return;
       food.deletedAt = new Date().toISOString();
       if (uiState.editingFoodId === food.id) uiState.editingFoodId = "";
       saveAndRender("Alimento ocultado de la biblioteca.");
@@ -3702,57 +2304,6 @@
     if (button.dataset.action === "recover-last-closed-day") {
       recoverLastClosedDay();
     }
-  }
-
-  if (typeof window.__LEFT_EAT_COMBINATION_TEST__ === "function") {
-    window.__LEFT_EAT_COMBINATION_TEST__({
-      foodCategory,
-      recommendationIds(sourceFoodId, mealItems = []) {
-        const sourceFood = activeFoods().find((food) => food.id === sourceFoodId);
-        if (!sourceFood) return [];
-
-        return foodCombinationRecommendations(sourceFood, {
-          id: "test-meal",
-          name: "Comida test",
-          items: mealItems
-        }, 4).map((item) => item.food.id);
-      },
-      contextualPanelHtml(sourceFoodId, mealItems = [], options = {}) {
-        const sourceFood = activeFoods().find((food) => food.id === sourceFoodId);
-        if (!sourceFood) return "";
-
-        const meal = {
-          id: "test-meal",
-          name: "Comida test",
-          items: mealItems
-        };
-        uiState.addFoodMealIds.clear();
-        uiState.collapsedMealIds.clear();
-        uiState.selectedFoodByMealId.clear();
-        uiState.comboContext = null;
-        uiState.recommendationFocus = null;
-
-        if (options.mode === "selected") {
-          uiState.addFoodMealIds.add(meal.id);
-          uiState.selectedFoodByMealId.set(meal.id, sourceFood.id);
-        } else {
-          const sourceItem = meal.items.find((item) => item.foodId === sourceFood.id) || {
-            id: "source-item",
-            foodId: sourceFood.id,
-            grams: Nutrition.number(sourceFood.servingGrams) || 100
-          };
-          if (!meal.items.some((item) => item.id === sourceItem.id)) meal.items.push(sourceItem);
-          uiState.recommendationFocus = {
-            mealId: meal.id,
-            itemId: sourceItem.id,
-            foodId: sourceFood.id
-          };
-        }
-
-        return renderSmartFoodSuggestions({ meals: [meal] });
-      }
-    });
-    return;
   }
 
   refs.profilePanelContent.addEventListener("click", handleProfileClick);

@@ -7,8 +7,16 @@ const indexPath = path.join(root, "index.html");
 
 const app = fs.readFileSync(appPath, "utf8");
 const index = fs.readFileSync(indexPath, "utf8");
+const renderUtils = fs.readFileSync(path.join(root, "src", "render-utils.js"), "utf8");
+const profileRender = fs.readFileSync(path.join(root, "src", "profile-render.js"), "utf8");
+const foodLibraryRender = fs.readFileSync(path.join(root, "src", "food-library-render.js"), "utf8");
+const historyRender = fs.readFileSync(path.join(root, "src", "history-render.js"), "utf8");
+const diaryRender = fs.readFileSync(path.join(root, "src", "diary-render.js"), "utf8");
+const nutrition = fs.readFileSync(path.join(root, "src", "nutrition.js"), "utf8");
 const styles = fs.readFileSync(path.join(root, "src", "styles.css"), "utf8");
 const pixelFontPath = path.join(root, "src", "fonts", "left2eat-pixel.ttf");
+const renderSurface = `${renderUtils}\n${profileRender}\n${foodLibraryRender}\n${historyRender}\n${diaryRender}`;
+const appAndRenderSurface = `${app}\n${renderSurface}`;
 
 function assert(condition, message) {
   if (!condition) {
@@ -19,6 +27,64 @@ function assert(condition, message) {
 function countOccurrences(text, fragment) {
   return text.split(fragment).length - 1;
 }
+
+function assertScriptBefore(first, second) {
+  const firstNeedle = `src="${first}"`;
+  const secondNeedle = `src="${second}"`;
+  assert(
+    index.includes(firstNeedle) && index.includes(secondNeedle) && index.indexOf(firstNeedle) < index.indexOf(secondNeedle),
+    `${first} must be loaded before ${second}`
+  );
+}
+
+assertScriptBefore("src/render-utils.js", "src/profile-render.js");
+assertScriptBefore("src/render-utils.js", "src/food-library-render.js");
+assertScriptBefore("src/render-utils.js", "src/history-render.js");
+assertScriptBefore("src/render-utils.js", "src/diary-render.js");
+assertScriptBefore("src/nutrition.js", "src/render-utils.js");
+assertScriptBefore("src/icons.js", "src/render-utils.js");
+assertScriptBefore("src/profile-render.js", "src/app.js");
+assertScriptBefore("src/food-library-render.js", "src/app.js");
+assertScriptBefore("src/history-render.js", "src/app.js");
+assertScriptBefore("src/history-render.js", "src/diary-render.js");
+assertScriptBefore("src/diary-render.js", "src/app.js");
+
+assert(
+  renderUtils.includes("window.LeftEatRenderUtils") &&
+    profileRender.includes("window.LeftEatProfileRenderers") &&
+    foodLibraryRender.includes("window.LeftEatFoodLibraryRenderers") &&
+    historyRender.includes("window.LeftEatHistoryRenderers") &&
+    diaryRender.includes("window.LeftEatDiaryRenderers"),
+  "phase 4A/4B render modules must expose stable window APIs"
+);
+
+assert(
+  !app.includes("function renderFoodCard") &&
+    !app.includes("function renderFoodForm") &&
+    !app.includes("function donutStyle") &&
+    !app.includes("PROFILE_PIXEL_SPRITES") &&
+    !app.includes("FOOD_PIXEL_SPRITES"),
+  "profile, library and shared render helpers must stay extracted from app.js"
+);
+
+assert(
+  !app.includes("function renderDayContext") &&
+    !app.includes("function renderMeals") &&
+    !app.includes("function renderSummary") &&
+    !app.includes("function renderEquivalences") &&
+    !app.includes("function renderFoodComboPanel") &&
+    !app.includes("function renderMealItem"),
+  "diary HTML renderers must stay extracted from app.js"
+);
+
+assert(
+  app.includes("async function confirmDanger(message)") &&
+    app.includes("confirm-danger-dialog") &&
+    app.includes("await confirmDanger") &&
+    !app.includes("window.confirm") &&
+    !/!\s*confirmDanger\(/.test(app),
+  "danger confirmations must use the app-owned async dialog, not window.confirm"
+);
 
 assert(
   index.includes('id="profile-editor"'),
@@ -31,7 +97,7 @@ assert(
 );
 
 assert(
-  app.includes('data-action="profile-editor"'),
+  profileRender.includes('data-action="profile-editor"'),
   "profile editor form is missing"
 );
 
@@ -40,17 +106,20 @@ assert(
     !fs.readFileSync(path.join(root, "src", "data.js"), "utf8").includes('{ id: "mixed", label: "Mixto" }') &&
     app.includes("function nextTrainingSelection") &&
     app.includes('return "mixed";') &&
-    app.includes("function normalizeDayContext") &&
-    app.includes('validTraining = new Set([...Data.TRAINING_TYPES.map((item) => item.id), "mixed"])') &&
-    app.includes('normalized.training === "none"') &&
-    app.includes('normalized.intensity = "normal"') &&
-    app.includes("isDayContextOptionActive(name, value, item.id)") &&
-    app.includes("function renderDayTrainingCard") &&
-    app.includes('class="field context-choice-field day-training-card"') &&
-    app.includes("<span>Entreno de hoy</span>") &&
-    app.includes('aria-label="Tipo de entreno"') &&
-    app.includes('aria-label="Intensidad"') &&
+    !app.includes("function normalizeDayContext") &&
+    app.includes("Nutrition.normalizeDayContext(day.context)") &&
+    nutrition.includes("function normalizeDayContext") &&
+    nutrition.includes('validTraining = new Set([...(window.LeftEatData.TRAINING_TYPES || []).map((item) => item.id), "mixed"])') &&
+    nutrition.includes('normalized.training === "none"') &&
+    nutrition.includes('normalized.intensity = "normal"') &&
+    diaryRender.includes("isDayContextOptionActive(name, value, item.id)") &&
+    diaryRender.includes("function renderDayTrainingCard") &&
+    diaryRender.includes('class="field context-choice-field day-training-card"') &&
+    diaryRender.includes("<span>Entreno de hoy</span>") &&
+    diaryRender.includes('aria-label="Tipo de entreno"') &&
+    diaryRender.includes('aria-label="Intensidad"') &&
     !app.includes("function renderDayContextOptionGroup") &&
+    !diaryRender.includes("function renderDayContextOptionGroup") &&
     app.includes('field === "training"') &&
     app.includes('day.context.training = nextValue'),
   "training selector must be a single card, expose only none/strength/cardio, and preserve mixed internally"
@@ -64,7 +133,7 @@ assert(
 );
 
 assert(
-  app.includes('data-action="discard-profile"') && app.includes("Guardar perfil"),
+  profileRender.includes('data-action="discard-profile"') && profileRender.includes("Guardar perfil"),
   "profile editor must keep explicit discard and save actions"
 );
 
@@ -89,7 +158,7 @@ assert(
 );
 
 assert(
-  !/class="[^"]*\bprofile-edit\b/.test(app),
+  !/class="[^"]*\bprofile-edit\b/.test(appAndRenderSurface),
   "profile edit form must not render inside the sidebar"
 );
 
@@ -104,25 +173,29 @@ assert(
 );
 
 assert(
-  app.includes('<details class="food-create">'),
+  foodLibraryRender.includes('<details class="food-create">'),
   "food create disclosure is missing"
 );
 
 assert(
-  !app.includes('<details class="food-create" open'),
+  !foodLibraryRender.includes('<details class="food-create" open'),
   "food create disclosure must not be open by default"
 );
 
 assert(
-  app.includes("<span>Guía del día</span>") && !app.includes("<span>Diagnóstico</span>"),
+  diaryRender.includes("<span>Guía del día</span>") && !app.includes("<span>Diagnóstico</span>") && !diaryRender.includes("<span>Diagnóstico</span>"),
   "right summary panel must be framed as day guidance, not visible diagnosis"
 );
 
 assert(
   !app.includes("Estado de hoy") &&
+    !diaryRender.includes("Estado de hoy") &&
     !app.includes("Sin comidas registradas") &&
+    !diaryRender.includes("Sin comidas registradas") &&
     !app.includes("<span>Siguiente paso</span>") &&
+    !diaryRender.includes("<span>Siguiente paso</span>") &&
     !app.includes("<span>Recordados</span>") &&
+    !diaryRender.includes("<span>Recordados</span>") &&
     !index.includes('id="summary-title"'),
   "redundant hero, suggestion and summary subtitles must stay removed"
 );
@@ -153,19 +226,25 @@ assert(
     /\.hero-over-band\s*{[\s\S]*background: rgba\(240, 90, 95, 0\.14\);/.test(styles) &&
     /\.hero-progress \.hero-progress-fill\s*{[\s\S]*background: rgba\(47, 111, 214, 0\.1\);/.test(styles) &&
     /\.hero-scale-meta\s*{[\s\S]*display: flex;[\s\S]*justify-content: space-between;/.test(styles) &&
-    /<div class="day-status-copy">[\s\S]*id="day-context-title"[\s\S]*class="day-energy-metric"[\s\S]*<div class="day-balance/.test(app) &&
-    app.includes('class="hero-scale-meta"') &&
-    app.includes('class="hero-scale-target"') &&
-    app.includes('class="hero-scale-spend"') &&
-    app.includes("kcalRange.max * 1.12") &&
-    app.includes('class="hero-target-band"') &&
-    app.includes('class="hero-over-band"') &&
+    /<div class="day-status-copy">[\s\S]*id="day-context-title"[\s\S]*class="day-energy-metric"[\s\S]*<div class="day-balance/.test(diaryRender) &&
+    diaryRender.includes('class="hero-scale-meta"') &&
+    diaryRender.includes('class="hero-scale-target"') &&
+    diaryRender.includes('class="hero-scale-spend"') &&
+    diaryRender.includes("kcalRange.max * 1.12") &&
+    diaryRender.includes('class="hero-target-band"') &&
+    diaryRender.includes('class="hero-over-band"') &&
     !app.includes('class="hero-bar-label') &&
+    !diaryRender.includes('class="hero-bar-label') &&
     !app.includes('class="day-number-details"') &&
+    !diaryRender.includes('class="day-number-details"') &&
     !app.includes("Ver objetivos y gasto") &&
+    !diaryRender.includes("Ver objetivos y gasto") &&
     !app.includes("<span>Ahora</span>") &&
+    !diaryRender.includes("<span>Ahora</span>") &&
     !app.includes("Empieza registrando la primera comida") &&
-    !app.includes("dayMessage("),
+    !diaryRender.includes("Empieza registrando la primera comida") &&
+    !app.includes("dayMessage(") &&
+    !diaryRender.includes("dayMessage("),
   "day kcal balance and progress must sit below the state headline at full width"
 );
 

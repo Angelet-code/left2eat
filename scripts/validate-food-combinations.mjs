@@ -3,38 +3,19 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 globalThis.window = globalThis;
-globalThis.document = {
-  getElementById() {
-    return null;
-  },
-  querySelector() {
-    return null;
-  }
-};
-globalThis.localStorage = {
-  getItem() {
-    return null;
-  },
-  setItem() {}
-};
-
-let combinationApi = null;
-globalThis.__LEFT_EAT_COMBINATION_TEST__ = (api) => {
-  combinationApi = api;
-};
 
 async function loadScript(path) {
   vm.runInThisContext(await readFile(path, "utf8"), { filename: path });
 }
 
 await loadScript("src/data.js");
-await loadScript("src/storage.js");
+await loadScript("src/meal-items.js");
 await loadScript("src/nutrition.js");
-await loadScript("src/icons.js");
-await loadScript("src/diagnosis-actions.js");
-await loadScript("src/app.js");
+await loadScript("src/food-combinations.js");
 
-assert.ok(combinationApi, "La app debe exponer el hook interno de combinaciones en modo test.");
+const combinationApi = globalThis.LeftEatFoodCombinations;
+
+assert.ok(combinationApi, "El modulo de combinaciones debe exponer una API publica.");
 
 const meatIds = new Set([
   "chicken",
@@ -44,11 +25,30 @@ const meatIds = new Set([
 ]);
 const fishIds = new Set(["salmon", "natural-tuna-drained"]);
 const foodById = new Map(globalThis.LeftEatData.BASE_FOODS.map((food) => [food.id, food]));
+const foods = globalThis.LeftEatData.BASE_FOODS;
+
+function recommendationIds(sourceFoodId, mealItems = [], options = {}) {
+  const sourceFood = foodById.get(sourceFoodId);
+  if (!sourceFood) return [];
+
+  return combinationApi.recommend({
+    sourceFood,
+    meal: {
+      id: "test-meal",
+      name: "Comida test",
+      items: mealItems
+    },
+    foods,
+    days: options.days || {},
+    mealTemplates: options.mealTemplates || [],
+    limit: 4
+  }).map((item) => item.food.id);
+}
 
 assert.equal(combinationApi.foodCategory(foodById.get("chicken")), "meat");
 assert.equal(combinationApi.foodCategory(foodById.get("salmon")), "fish");
 
-const yogurtIds = combinationApi.recommendationIds("greek-yogurt");
+const yogurtIds = recommendationIds("greek-yogurt");
 assert.equal(yogurtIds.length, 4, "El kefir debe ofrecer cuatro combinaciones.");
 assert.ok(
   yogurtIds.some((id) => ["banana", "blueberries", "watermelon", "melon"].includes(id)),
@@ -56,29 +56,17 @@ assert.ok(
 );
 assert.ok(yogurtIds.includes("peanut-butter"), "El kefir debe poder combinar con crema de cacahuete.");
 
-const salmonIds = combinationApi.recommendationIds("salmon");
+const salmonIds = recommendationIds("salmon");
 assert.equal(salmonIds.length, 4, "El salmon debe ofrecer cuatro combinaciones.");
 assert.deepEqual(salmonIds, ["cherry-tomato", "potato", "gnocchi", "bread"]);
 assert.ok(!salmonIds.some((id) => meatIds.has(id)), "El salmon no debe sugerir carne.");
 
-const chickenIds = combinationApi.recommendationIds("chicken");
+const chickenIds = recommendationIds("chicken");
 assert.equal(chickenIds.length, 4, "El pollo debe ofrecer cuatro combinaciones.");
 assert.deepEqual(chickenIds, ["rice", "potato", "green-garlic", "cherry-tomato"]);
 assert.ok(!chickenIds.includes("chicken"), "El pollo no debe sugerirse a si mismo como combinacion.");
 
-const selectedChickenPanel = combinationApi.contextualPanelHtml("chicken", [], { mode: "selected" });
-assert.ok(selectedChickenPanel.includes("Combina con Pechuga de pollo"), "El panel contextual debe titularse con el alimento seleccionado.");
-assert.ok(!selectedChickenPanel.includes("Recordados"), "Con alimento seleccionado no debe aparecer el panel generico de recordados.");
-assert.ok(selectedChickenPanel.includes("Arroz (crudo)"), "El panel contextual del pollo debe sugerir arroz.");
-assert.ok(selectedChickenPanel.includes("Patata cocida"), "El panel contextual del pollo debe sugerir patata.");
-
-const addedChickenPanel = combinationApi.contextualPanelHtml("chicken", [
-  { id: "existing-chicken", foodId: "chicken", grams: 160 }
-]);
-assert.ok(addedChickenPanel.includes("Combina con Pechuga de pollo"), "El ultimo alimento anadido debe mantener recomendaciones contextuales.");
-assert.ok(!addedChickenPanel.includes("data-food-id=\"chicken\""), "Las tarjetas contextuales no deben recomendar repetir el alimento fuente.");
-
-const potatoWithChickenIds = combinationApi.recommendationIds("potato", [
+const potatoWithChickenIds = recommendationIds("potato", [
   { id: "existing-chicken", foodId: "chicken", grams: 160 }
 ]);
 assert.equal(potatoWithChickenIds.length, 4, "Una comida con pollo debe seguir teniendo cuatro sugerencias.");
@@ -90,5 +78,40 @@ assert.ok(
   !potatoWithChickenIds.some((id) => meatIds.has(id)),
   "Una comida con carne no debe sugerir otra carne como combinacion."
 );
+
+const habitualRecommendations = combinationApi.recommend({
+  sourceFood: foodById.get("greek-yogurt"),
+  meal: { id: "test-meal", name: "Comida test", items: [] },
+  foods,
+  days: {
+    today: {
+      date: "2026-05-30",
+      meals: [{
+        id: "habitual-day",
+        items: [
+          { id: "day-yogurt", foodId: "greek-yogurt", grams: 250 },
+          { id: "day-peanut", foodId: "peanut-butter", grams: 30 }
+        ]
+      }]
+    }
+  },
+  mealTemplates: [{
+    id: "habitual-template",
+    name: "Kefir con fruta",
+    updatedAt: "2026-05-29",
+    items: [
+      { id: "template-yogurt", foodId: "greek-yogurt", grams: 250 },
+      { id: "template-banana", foodId: "banana", grams: 150 }
+    ]
+  }],
+  limit: 4
+});
+const habitualPeanut = habitualRecommendations.find((item) => item.food.id === "peanut-butter");
+const habitualBanana = habitualRecommendations.find((item) => item.food.id === "banana");
+
+assert.equal(habitualPeanut?.source, "habitual", "El historial debe marcar combinaciones habituales.");
+assert.equal(habitualPeanut?.grams, 30, "El historial debe conservar la cantidad preferida.");
+assert.equal(habitualBanana?.source, "habitual", "Las plantillas deben aportar combinaciones habituales.");
+assert.equal(habitualBanana?.grams, 150, "Las plantillas deben conservar la cantidad preferida.");
 
 console.log("validate-food-combinations: ok");

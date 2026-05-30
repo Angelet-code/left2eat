@@ -16,11 +16,18 @@ Servidor por defecto: `http://127.0.0.1:5174/index.html`.
 
 - `index.html`: markup principal y orden de carga de scripts.
 - `src/data.js`: alimentos base, objetivos, niveles de actividad y equivalencias.
+- `src/meal-items.js`: helper compartido para leer y canonicalizar alimentos de comidas manteniendo `meal.items`.
 - `src/storage.js`: persistencia en `localStorage`.
 - `src/nutrition.js`: calculos nutricionales, resumen diario, rangos, equivalencias y recomendaciones.
+- `src/food-combinations.js`: reglas puras de combinaciones culinarias y ranking por historial/plantillas.
 - `src/icons.js`: iconos SVG inline.
+- `src/render-utils.js`: utilidades compartidas de render, formato, sprites e iconos.
+- `src/profile-render.js`: render puro de perfil y editor de perfil.
+- `src/food-library-render.js`: render puro de biblioteca de alimentos.
+- `src/history-render.js`: render puro de historial y analisis.
+- `src/diary-render.js`: render puro del diario, comidas, guia derecha y equivalencias.
 - `src/diagnosis-actions.js`: acciones derivadas del diagnostico que convierten sugerencias en items normales y permiten validacion local sin navegador.
-- `src/app.js`: estado UI, renderizado, eventos y persistencia.
+- `src/app.js`: orquestacion de estado UI, eventos, persistencia, undo, confirmaciones y ensamblado de datos para render.
 - `src/styles.css`: sistema visual y responsive.
 
 ## Modelo De Dominio
@@ -68,9 +75,16 @@ Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js
+node --check src/meal-items.js
 node --check src/storage.js
 node --check src/nutrition.js
+node --check src/food-combinations.js
 node --check src/icons.js
+node --check src/render-utils.js
+node --check src/profile-render.js
+node --check src/food-library-render.js
+node --check src/history-render.js
+node --check src/diary-render.js
 node --check src/diagnosis-actions.js
 node --check src/app.js
 node scripts/validate-project-structure.mjs
@@ -102,12 +116,13 @@ Checks manuales recomendados:
   - grasas: rojo intenso
   - fibra: violeta
 - Los objetivos se muestran como rango aceptable y optimo, no como numero unico obligatorio.
-- La estructura tecnica fue limpiada para que nutricion concentre calculos y app renderice desde contexto.
+- La estructura tecnica fue limpiada para que nutricion concentre calculos, los renderizadores pinten desde datos preparados y `src/app.js` coordine estado/eventos.
+- Las confirmaciones destructivas usan un dialogo propio mediante `confirmDanger(message)`, no `window.confirm`.
 
 ## Cuidado Especial
 
 - No borrar ni renombrar `meal.items` sin migracion.
 - No cambiar `left-eat-state-v1`.
-- No usar `window.confirm` directamente; usar `confirmDanger(message)`.
+- No usar `window.confirm` directamente; usar `await confirmDanger(message)` en flujos destructivos.
 - Al eliminar comidas vacias no hace falta confirmacion; si tienen alimentos, si.
 - El texto visible esta en castellano.

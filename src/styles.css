@@ -1,17 +1,19 @@
+/* Tokens */
 :root {
   color-scheme: light;
-  --bg: #eef4f1;
+  --bg: #f3f5f8;
   --surface: #ffffff;
-  --surface-soft: #f6f9f7;
-  --surface-strong: #e9f1ee;
-  --ink: #07111f;
-  --ink-soft: #1d2a36;
-  --muted: #637186;
-  --muted-strong: #48566a;
-  --line: #dfe8e5;
-  --line-strong: #cfdcd8;
-  --brand: #087b70;
-  --brand-strong: #045e56;
+  --surface-soft: #f7f8fb;
+  --surface-strong: #eef1f6;
+  --ink: #111827;
+  --ink-soft: #243043;
+  --muted: #687386;
+  --muted-strong: #4d5869;
+  --line: #dfe5ee;
+  --line-strong: #cbd5e1;
+  --brand: #3f63d3;
+  --brand-strong: #253f9c;
+  --brand-soft: #edf1ff;
   --danger: #d7263d;
   --warning: #c98a1a;
   --macro-energy: #2f6fd6;
@@ -36,11 +38,93 @@
   --macro-fiber-text: #4f409d;
   --macro-empty: #e8f0ed;
   --radius: 8px;
-  --sidebar-width: 280px;
-  --shadow-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 18px 46px rgba(15, 23, 42, 0.09);
-  --shadow-dark: 0 26px 70px rgba(7, 17, 31, 0.22);
+  --sidebar-width: 220px;
+  --shadow-sm: 0 1px 2px rgba(22, 33, 29, 0.05);
+  --shadow-md: 0 12px 28px rgba(22, 33, 29, 0.08);
+  --shadow-dark: 0 14px 34px rgba(22, 33, 29, 0.14);
+  --tone-energy: #2f6fd6;
+  --tone-energy-soft: #edf4ff;
+  --tone-energy-text: #234f9d;
+  --tone-memory: #f2b84b;
+  --tone-memory-soft: #fff7df;
+  --tone-memory-text: #7a4f00;
+  --game-ink: #1f2937;
+  --game-ink-soft: #536173;
+  --game-line: #243044;
+  --game-red: #ef4444;
+  --game-red-dark: #b91c1c;
+  --game-blue: #2f6fe4;
+  --game-sky: #71c8ee;
+  --game-yellow: #ffd84d;
+  --game-amber: #f3a712;
+  --game-cream: #fff2c2;
+  --game-paper: #fffaf0;
+  --game-mint: #4fbd8a;
+  --game-violet: #8b6dff;
+  --game-shadow: 0 3px 0 var(--game-line), 0 14px 26px rgba(31, 41, 55, 0.16);
+  --game-shadow-soft: 0 2px 0 rgba(36, 48, 68, 0.28), 0 10px 20px rgba(31, 41, 55, 0.1);
+  --card-radius: 8px;
+  --map-ink: #262317;
+  --map-panel: #f2ecdc;
+  --map-panel-soft: #fff8e8;
+  --map-path: #f4e7b2;
+  --map-sand: #e4c684;
+  --map-grass: #8bc66d;
+  --map-border: 3px solid var(--map-ink);
+  --map-shadow: 6px 6px 0 rgba(38, 35, 23, 0.82);
+  --map-shadow-soft: 3px 3px 0 rgba(38, 35, 23, 0.32);
+  --clean-ink: #243044;
+  --clean-muted: #64748b;
+  --clean-line: rgba(65, 83, 111, 0.18);
+  --clean-line-strong: rgba(65, 83, 111, 0.28);
+  --clean-paper: rgba(255, 252, 242, 0.9);
+  --clean-paper-solid: #fffaf0;
+  --clean-panel: rgba(255, 252, 242, 0.78);
+  --clean-shadow: 0 18px 42px rgba(31, 41, 55, 0.12);
+  --clean-shadow-soft: 0 10px 24px rgba(31, 41, 55, 0.08);
+  --pixel-ink: #263247;
+  --pixel-ink-soft: #516176;
+  --pixel-line: rgba(38, 50, 71, 0.22);
+  --pixel-line-strong: rgba(38, 50, 71, 0.34);
+  --pixel-paper: rgba(255, 252, 240, 0.9);
+  --pixel-hp: #39c86a;
+  --pixel-hp-mid: #ffd45c;
+  --pixel-hp-low: #f05a5f;
+  --pixel-mana: #4a85f2;
+  --pixel-shadow: 0 2px 0 rgba(38, 50, 71, 0.22), 0 14px 28px rgba(38, 50, 71, 0.1);
+  --section-icon-diary:
+    linear-gradient(90deg, transparent 0 22%, rgba(38, 50, 71, 0.24) 22% 27%, transparent 27%),
+    linear-gradient(180deg, #72a8ff 0 18%, #ffe68f 18% 32%, #fffaf0 32% 100%);
+  --section-icon-foods:
+    radial-gradient(circle at 50% 42%, #ff8f6b 0 5px, transparent 6px),
+    linear-gradient(90deg, transparent 0 24%, #63bd78 24% 32%, transparent 32%),
+    linear-gradient(180deg, transparent 0 55%, rgba(38, 50, 71, 0.22) 55% 59%, transparent 59%),
+    #fffaf0;
+  --section-icon-goals:
+    linear-gradient(90deg, transparent 0 16%, #d49b27 16% 28%, transparent 28% 72%, #d49b27 72% 84%, transparent 84%),
+    linear-gradient(180deg, #ffe28a 0 36%, #f3bb4c 36% 60%, #fffaf0 60% 100%);
+  --section-icon-history:
+    linear-gradient(135deg, transparent 0 45%, rgba(38, 50, 71, 0.24) 45% 54%, transparent 54%),
+    linear-gradient(45deg, transparent 0 44%, rgba(38, 50, 71, 0.18) 44% 53%, transparent 53%),
+    linear-gradient(180deg, #dff7ff 0 48%, #d8efbf 48% 100%);
+  --section-icon-profile:
+    radial-gradient(circle at 50% 38%, #e8ad82 0 5px, transparent 6px),
+    linear-gradient(90deg, transparent 0 18%, #5a392c 18% 31%, transparent 31% 69%, #5a392c 69% 82%, transparent 82%),
+    linear-gradient(180deg, #dff7ff 0 58%, #d8efbf 58% 100%);
+  --font-pixel-title: "Jersey 10", "Pixelify Sans", "Left2Eat Pixel", monospace;
+  --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --type-display: 6rem;
+  --type-page: 3rem;
+  --type-section: 1.5rem;
+  --type-card: 1.3rem;
+  --type-subtitle: 0.84rem;
+  --type-label: 0.74rem;
+  --app-chrome-radius: 8px;
+  --app-gutter: 24px;
+  --right-panel-width: 318px;
 }
+
+/* Base */
 
 * {
   box-sizing: border-box;
@@ -176,15 +260,6 @@ option {
   color: var(--muted-strong);
   font-size: 0.92rem;
   font-weight: 650;
-}
-
-.profile-panel {
-  margin-top: 28px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 18px;
-  box-shadow: var(--shadow-sm);
 }
 
 .section-heading {
@@ -425,6 +500,67 @@ option {
   color: var(--danger);
 }
 
+.confirm-danger-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.56);
+}
+
+.confirm-danger-dialog {
+  display: grid;
+  width: min(100%, 430px);
+  max-height: calc(100vh - 48px);
+  gap: 16px;
+  overflow: auto;
+  padding: 22px;
+}
+
+.confirm-danger-dialog h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-pixel-title);
+  font-size: var(--type-card);
+  line-height: 1;
+}
+
+.confirm-danger-dialog p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.confirm-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-danger-confirm {
+  background: var(--danger);
+}
+
+.confirm-danger-confirm:hover {
+  background: #b91c1c;
+}
+
+@media (max-width: 520px) {
+  .confirm-danger-backdrop {
+    align-items: end;
+    padding: 16px;
+  }
+
+  .confirm-danger-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .star-button.is-active {
   border-color: rgba(201, 138, 26, 0.35);
   background: var(--macro-carbs-soft);
@@ -441,17 +577,6 @@ option {
   display: grid;
   gap: 10px;
   margin-top: 24px;
-}
-
-.side-nav button {
-  min-height: 52px;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--muted-strong);
-  padding: 0 18px;
-  text-align: left;
-  font-weight: 900;
 }
 
 .side-nav button:hover {
@@ -476,6 +601,7 @@ option {
   z-index: 20;
   border-bottom: 1px solid rgba(255, 255, 255, 0.8);
   background: rgba(238, 244, 241, 0.86);
+  justify-content: space-between;
   padding: 18px 28px;
   backdrop-filter: blur(16px);
 }
@@ -486,10 +612,6 @@ option {
   display: flex;
   align-items: center;
   gap: 16px;
-}
-
-.topbar {
-  justify-content: space-between;
 }
 
 .day-heading {
@@ -2274,17 +2396,8 @@ option {
     font-size: 15px;
   }
 
-  .sidebar {
-    grid-template-columns: 1fr;
-    padding: 14px;
-  }
-
   .side-nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .topbar {
-    padding: 16px;
   }
 
   .topbar-actions,
@@ -2297,10 +2410,6 @@ option {
   .date-field input,
   .primary-action {
     width: 100%;
-  }
-
-  .workspace {
-    padding: 16px;
   }
 
   .day-editor {
@@ -2414,14 +2523,7 @@ option {
   }
 }
 
-/* Registro rapido: layout v2 */
-:root {
-  --sidebar-width: 236px;
-}
-
-.sidebar {
-  padding: 18px;
-}
+/* Layout: registro diario */
 
 .brand {
   gap: 10px;
@@ -2443,11 +2545,6 @@ option {
 .side-nav {
   gap: 8px;
   margin-top: 18px;
-}
-
-.side-nav button {
-  min-height: 44px;
-  padding: 0 12px;
 }
 
 .profile-panel {
@@ -2527,13 +2624,6 @@ option {
 
 .date-field input {
   min-width: 148px;
-}
-
-.workspace {
-  grid-template-columns: minmax(560px, 1fr) minmax(286px, 320px);
-  gap: 18px;
-  max-width: 1360px;
-  padding: 18px 20px 30px;
 }
 
 .day-panel {
@@ -2671,12 +2761,6 @@ option {
   top: 24px;
 }
 
-.summary-panel {
-  position: sticky;
-  top: 88px;
-  padding: 16px;
-}
-
 .summary-panel .macro-cards {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -2776,10 +2860,6 @@ option {
 }
 
 @media (max-width: 1240px) {
-  .workspace {
-    grid-template-columns: minmax(520px, 1fr) minmax(280px, 300px);
-    padding-inline: 18px;
-  }
 
   .summary-panel .macro-card strong {
     font-size: 1.08rem;
@@ -2814,10 +2894,6 @@ option {
 
   .main-shell {
     margin-left: 0;
-  }
-
-  .workspace {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 310px);
   }
 }
 
@@ -2865,10 +2941,6 @@ option {
     min-height: 38px;
     padding: 0 6px;
     font-size: 0.82rem;
-  }
-
-  .profile-panel {
-    padding: 10px;
   }
 
   .profile-panel > .section-heading,
@@ -2921,14 +2993,6 @@ option {
     width: auto;
     padding: 0 12px;
     white-space: nowrap;
-  }
-
-  .workspace {
-    padding: 12px;
-  }
-
-  .summary-panel {
-    order: 2;
   }
 
   .day-hero-main,
@@ -3001,36 +3065,10 @@ option {
   }
 }
 
-/* Redisenyo operativo v3: menos decoracion, mas claridad de trabajo */
-:root {
-  --bg: #f5f7f4;
-  --surface: #ffffff;
-  --surface-soft: #f6f8f6;
-  --surface-strong: #edf2ed;
-  --ink: #16211d;
-  --ink-soft: #26352f;
-  --muted: #6d7a74;
-  --muted-strong: #4f5e57;
-  --line: #dce5df;
-  --line-strong: #c9d7ce;
-  --brand: #247461;
-  --brand-strong: #155a4a;
-  --brand-soft: #e7f4ee;
-  --shadow-sm: 0 1px 2px rgba(22, 33, 29, 0.05);
-  --shadow-md: 0 12px 28px rgba(22, 33, 29, 0.08);
-  --shadow-dark: 0 14px 34px rgba(22, 33, 29, 0.14);
-}
-
+/* Base: superficie operativa */
 body {
   background: var(--bg);
   color: var(--ink);
-}
-
-.sidebar {
-  border-right: 1px solid var(--line);
-  background: #fbfcfb;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
 .brand-mark {
@@ -3049,14 +3087,6 @@ body {
   letter-spacing: 0;
 }
 
-.side-nav button {
-  justify-content: flex-start;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--muted-strong);
-  box-shadow: none;
-}
-
 .side-nav button:hover,
 .side-nav button:focus-visible {
   border-color: var(--line);
@@ -3069,19 +3099,6 @@ body {
   background: var(--brand-soft);
   color: var(--brand-strong);
   box-shadow: inset 3px 0 0 var(--brand);
-}
-
-.profile-panel {
-  border-color: var(--line);
-  background: var(--surface);
-  box-shadow: none;
-}
-
-.topbar {
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
 .workspace {
@@ -3347,11 +3364,6 @@ input:focus {
   border-style: dashed;
 }
 
-.summary-panel {
-  top: 92px;
-  padding: 18px;
-}
-
 .summary-hero {
   background: #17251f;
   box-shadow: none;
@@ -3415,14 +3427,6 @@ input:focus {
 }
 
 @media (max-width: 1080px) {
-  .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .workspace {
-    grid-template-columns: 1fr;
-  }
 
   .summary-panel {
     position: static;
@@ -3487,14 +3491,7 @@ input:focus {
   }
 }
 
-/* Simplificacion v4: menos numeros visibles, mismas acciones disponibles */
-:root {
-  --sidebar-width: 220px;
-}
-
-.profile-panel {
-  padding: 12px;
-}
+/* Componentes: controles compactos */
 
 .profile-panel > .section-heading,
 .profile-quick-stats,
@@ -3865,7 +3862,7 @@ input:focus {
   }
 }
 
-/* Sugerencias v5: memoria util en lugar de controles repetidos */
+/* Vistas: sugerencias del diario */
 .macro-cards:empty {
   display: none;
 }
@@ -3988,28 +3985,7 @@ input:focus {
   }
 }
 
-/* Jerarquia cromatica v6: color con significado */
-:root {
-  --bg: #f3f5f8;
-  --surface-soft: #f7f8fb;
-  --surface-strong: #eef1f6;
-  --ink: #111827;
-  --ink-soft: #243043;
-  --muted: #687386;
-  --muted-strong: #4d5869;
-  --line: #dfe5ee;
-  --line-strong: #cbd5e1;
-  --brand: #3f63d3;
-  --brand-strong: #253f9c;
-  --brand-soft: #edf1ff;
-  --tone-energy: #2f6fd6;
-  --tone-energy-soft: #edf4ff;
-  --tone-energy-text: #234f9d;
-  --tone-memory: #f2b84b;
-  --tone-memory-soft: #fff7df;
-  --tone-memory-text: #7a4f00;
-}
-
+/* Tokens: estados cromaticos */
 .is-protein {
   --tone: var(--macro-protein);
   --tone-soft: var(--macro-protein-soft);
@@ -4054,11 +4030,6 @@ body {
   background: #f3f5f8;
 }
 
-.sidebar {
-  background: #182235;
-  color: #edf2ff;
-}
-
 .brand h1,
 .sidebar .profile-identity strong {
   color: #fff;
@@ -4073,10 +4044,6 @@ body {
 .brand-mark {
   background: #6f8cff;
   color: #fff;
-}
-
-.side-nav button {
-  color: #cfd8ea;
 }
 
 .side-nav button:hover,
@@ -4107,11 +4074,6 @@ body {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
-}
-
-.topbar {
-  border-bottom: 1px solid #dde4f0;
-  background: #fff;
 }
 
 .day-editor {
@@ -4272,10 +4234,6 @@ body {
   color: #253f9c;
 }
 
-.summary-panel {
-  border-top: 6px solid #6f8cff;
-}
-
 .summary-hero {
   border-color: color-mix(in srgb, var(--tone) 32%, #dfe5ee);
   background: linear-gradient(135deg, var(--tone-soft) 0, #fff 72%);
@@ -4332,30 +4290,9 @@ body {
 }
 
 @media (max-width: 1080px) {
-  .sidebar {
-    background: #182235;
-  }
 }
 
-/* Tema aventura tipo Pokedex v7: identidad mas ludica y jerarquia fuerte */
-:root {
-  --game-ink: #172033;
-  --game-ink-soft: #34435f;
-  --game-red: #e83b3b;
-  --game-red-dark: #a51f2d;
-  --game-blue: #2d6cdf;
-  --game-sky: #8fd3ff;
-  --game-yellow: #ffd84d;
-  --game-amber: #f59e0b;
-  --game-cream: #fff4cf;
-  --game-paper: #fffdf4;
-  --game-mint: #61c69a;
-  --game-violet: #8d6bff;
-  --game-shadow: 5px 5px 0 var(--game-ink);
-  --game-shadow-soft: 3px 3px 0 rgba(23, 32, 51, 0.24);
-  --card-radius: 8px;
-}
-
+/* Vistas: tema de aventura */
 body {
   color: var(--game-ink);
   background-color: #f7eab8;
@@ -4387,15 +4324,6 @@ textarea {
 
 .app-shell {
   background: transparent;
-}
-
-.sidebar {
-  border-right: 4px solid var(--game-ink);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 18%),
-    linear-gradient(180deg, var(--game-red) 0%, var(--game-red-dark) 100%);
-  color: #fff;
-  box-shadow: 8px 0 0 rgba(23, 32, 51, 0.22);
 }
 
 .sidebar::before {
@@ -4506,13 +4434,6 @@ textarea {
   border: 3px solid var(--game-ink);
   background: var(--game-cream);
   color: var(--game-ink);
-}
-
-.topbar {
-  border-bottom: 4px solid var(--game-ink);
-  background:
-    linear-gradient(90deg, var(--game-cream), #fff 48%, #e8f6ff);
-  box-shadow: 0 5px 0 rgba(23, 32, 51, 0.14);
 }
 
 .topbar-title .eyebrow {
@@ -5064,11 +4985,6 @@ textarea {
 }
 
 @media (max-width: 760px) {
-  :root {
-    --game-shadow: 3px 3px 0 var(--game-ink);
-    --game-shadow-soft: 2px 2px 0 rgba(23, 32, 51, 0.22);
-  }
-
   body {
     background-size: 24px 24px, 24px 24px, cover;
   }
@@ -5096,25 +5012,7 @@ textarea {
   }
 }
 
-/* Pulido RPG profesional v8: menos ruido, mas escena y componentes limpios */
-:root {
-  --game-ink: #1f2937;
-  --game-ink-soft: #536173;
-  --game-line: #243044;
-  --game-red: #ef4444;
-  --game-red-dark: #b91c1c;
-  --game-blue: #2f6fe4;
-  --game-sky: #71c8ee;
-  --game-yellow: #ffd84d;
-  --game-amber: #f3a712;
-  --game-cream: #fff2c2;
-  --game-paper: #fffaf0;
-  --game-mint: #4fbd8a;
-  --game-violet: #8b6dff;
-  --game-shadow: 0 3px 0 var(--game-line), 0 14px 26px rgba(31, 41, 55, 0.16);
-  --game-shadow-soft: 0 2px 0 rgba(36, 48, 68, 0.28), 0 10px 20px rgba(31, 41, 55, 0.1);
-}
-
+/* Componentes: paneles de aventura */
 html {
   background: #79c9ee;
 }
@@ -5210,14 +5108,6 @@ body::after {
   color: rgba(255, 255, 255, 0.72);
 }
 
-.side-nav button {
-  min-height: 42px;
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
-  box-shadow: none;
-}
-
 .side-nav button:hover,
 .side-nav button:focus-visible {
   border-color: rgba(255, 255, 255, 0.22);
@@ -5232,12 +5122,6 @@ body::after {
   background: var(--game-yellow);
   color: var(--game-ink);
   box-shadow: inset 5px 0 0 var(--game-blue), 0 2px 0 rgba(31, 41, 55, 0.3);
-}
-
-.profile-panel {
-  border: 2px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
 }
 
 .profile-avatar {
@@ -5495,14 +5379,6 @@ body::after {
   border-left: 6px solid var(--tone);
 }
 
-.summary-panel {
-  border: 2px solid var(--game-line);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 120px),
-    #253149;
-  box-shadow: var(--game-shadow);
-}
-
 .summary-hero,
 .diagnosis-card,
 .summary-focus-row {
@@ -5602,19 +5478,7 @@ body::after {
   }
 }
 
-/* Vista mapa RPG v9: composicion de aventura con paneles laterales */
-:root {
-  --map-ink: #262317;
-  --map-panel: #f2ecdc;
-  --map-panel-soft: #fff8e8;
-  --map-path: #f4e7b2;
-  --map-sand: #e4c684;
-  --map-grass: #8bc66d;
-  --map-border: 3px solid var(--map-ink);
-  --map-shadow: 6px 6px 0 rgba(38, 35, 23, 0.82);
-  --map-shadow-soft: 3px 3px 0 rgba(38, 35, 23, 0.32);
-}
-
+/* Layout: mapa de aplicacion */
 body {
   background:
     linear-gradient(180deg, #6fc8f1 0%, #9de2fb 43%, #dff7ff 58%, #82c86f 59%, #77a967 100%);
@@ -6156,7 +6020,7 @@ body::after {
   }
 }
 
-/* Prototipo pixel food 32x32 */
+/* Componentes: pixel food 32x32 */
 .food-sprite {
   display: inline-grid;
   width: 32px;
@@ -6234,19 +6098,7 @@ body::after {
   }
 }
 
-/* Limpieza visual v10: mas ancho, menos borde negro y fondo respirable */
-:root {
-  --clean-ink: #243044;
-  --clean-muted: #64748b;
-  --clean-line: rgba(65, 83, 111, 0.18);
-  --clean-line-strong: rgba(65, 83, 111, 0.28);
-  --clean-paper: rgba(255, 252, 242, 0.9);
-  --clean-paper-solid: #fffaf0;
-  --clean-panel: rgba(255, 252, 242, 0.78);
-  --clean-shadow: 0 18px 42px rgba(31, 41, 55, 0.12);
-  --clean-shadow-soft: 0 10px 24px rgba(31, 41, 55, 0.08);
-}
-
+/* Layout: amplitud y respiracion */
 body {
   background:
     linear-gradient(180deg, #80cff1 0%, #bdefff 45%, #eefbf7 63%, #d9edc7 100%);
@@ -6276,11 +6128,6 @@ body::after {
     gap: 24px;
     width: min(100%, 1760px);
     padding: 24px 32px 88px;
-  }
-
-  .workspace {
-    grid-template-columns: minmax(0, 1fr) 318px;
-    gap: 24px;
   }
 }
 
@@ -6333,11 +6180,6 @@ body::after {
 .food-name span,
 .food-macros {
   color: var(--clean-muted);
-}
-
-.side-nav button {
-  border: 1px solid transparent;
-  background: transparent;
 }
 
 .side-nav button::before {
@@ -6517,7 +6359,7 @@ body::after {
   }
 }
 
-/* Recomendaciones de combinacion */
+/* Vistas: combinaciones de alimentos */
 .food-combo-trigger {
   width: 100%;
   border: 1px solid transparent;
@@ -6644,39 +6486,7 @@ body::after {
   }
 }
 
-/* Pixel art propio v11: JRPG sin referencias literales */
-:root {
-  --pixel-ink: #263247;
-  --pixel-ink-soft: #516176;
-  --pixel-line: rgba(38, 50, 71, 0.22);
-  --pixel-line-strong: rgba(38, 50, 71, 0.34);
-  --pixel-paper: rgba(255, 252, 240, 0.9);
-  --pixel-hp: #39c86a;
-  --pixel-hp-mid: #ffd45c;
-  --pixel-hp-low: #f05a5f;
-  --pixel-mana: #4a85f2;
-  --pixel-shadow: 0 2px 0 rgba(38, 50, 71, 0.22), 0 14px 28px rgba(38, 50, 71, 0.1);
-  --section-icon-diary:
-    linear-gradient(90deg, transparent 0 22%, rgba(38, 50, 71, 0.24) 22% 27%, transparent 27%),
-    linear-gradient(180deg, #72a8ff 0 18%, #ffe68f 18% 32%, #fffaf0 32% 100%);
-  --section-icon-foods:
-    radial-gradient(circle at 50% 42%, #ff8f6b 0 5px, transparent 6px),
-    linear-gradient(90deg, transparent 0 24%, #63bd78 24% 32%, transparent 32%),
-    linear-gradient(180deg, transparent 0 55%, rgba(38, 50, 71, 0.22) 55% 59%, transparent 59%),
-    #fffaf0;
-  --section-icon-goals:
-    linear-gradient(90deg, transparent 0 16%, #d49b27 16% 28%, transparent 28% 72%, #d49b27 72% 84%, transparent 84%),
-    linear-gradient(180deg, #ffe28a 0 36%, #f3bb4c 36% 60%, #fffaf0 60% 100%);
-  --section-icon-history:
-    linear-gradient(135deg, transparent 0 45%, rgba(38, 50, 71, 0.24) 45% 54%, transparent 54%),
-    linear-gradient(45deg, transparent 0 44%, rgba(38, 50, 71, 0.18) 44% 53%, transparent 53%),
-    linear-gradient(180deg, #dff7ff 0 48%, #d8efbf 48% 100%);
-  --section-icon-profile:
-    radial-gradient(circle at 50% 38%, #e8ad82 0 5px, transparent 6px),
-    linear-gradient(90deg, transparent 0 18%, #5a392c 18% 31%, transparent 31% 69%, #5a392c 69% 82%, transparent 82%),
-    linear-gradient(180deg, #dff7ff 0 58%, #d8efbf 58% 100%);
-}
-
+/* Componentes: sprites propios */
 body {
   background:
     linear-gradient(180deg, #85d1f2 0%, #c6f1ff 48%, #eef9f2 67%, #d6eec4 100%);
@@ -6884,7 +6694,7 @@ body[data-topbar-icon="profile"] .topbar::before {
   background: rgba(255, 255, 255, 0.62);
 }
 
-/* Pixel art propio v12: navegacion limpia de app */
+/* Componentes: navegacion principal */
 .side-nav {
   grid-template-columns: 1fr;
   gap: 8px;
@@ -6989,7 +6799,7 @@ body[data-topbar-icon="profile"] .topbar::before {
   }
 }
 
-/* Pixel art propio v13: avatares de perfil */
+/* Componentes: avatares de perfil */
 .profile-identity {
   grid-template-columns: 46px minmax(0, 1fr);
   gap: 12px;
@@ -7041,7 +6851,7 @@ body[data-topbar-icon="profile"] .topbar::before {
   }
 }
 
-/* Pixel art propio v14: galeria de 8 avatares */
+/* Componentes: galeria de avatares */
 .profile-avatar-bob {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0 35%, transparent 35%),
@@ -7172,7 +6982,7 @@ body[data-topbar-icon="profile"] .topbar::before {
   }
 }
 
-/* Pixel art propio v15: perfil compacto y estable */
+/* Componentes: perfil compacto estable */
 .profile-panel,
 .profile-panel p,
 .profile-panel span,
@@ -7231,7 +7041,7 @@ body[data-topbar-icon="profile"] .topbar::before {
   box-shadow: 0 2px 0 rgba(38, 50, 71, 0.18), 0 12px 20px rgba(38, 50, 71, 0.1);
 }
 
-/* Pixel art propio v19: editor de perfil como vista principal */
+/* Vistas: editor principal de perfil */
 body.is-profile-view .workspace {
   grid-template-columns: minmax(0, 880px);
   justify-content: center;
@@ -7397,7 +7207,7 @@ body.is-profile-view .day-panel {
   }
 }
 
-/* Visual polish fixes: remove duplicated panel labels and prevent topbar clipping. */
+/* Layout: chrome sin etiquetas duplicadas */
 .sidebar::before,
 .profile-panel::before,
 .summary-panel::before,
@@ -7460,7 +7270,7 @@ body.is-profile-view .day-panel {
   }
 }
 
-/* Compact numeric details inside the right guide panel. */
+/* Componentes: guia derecha numerica */
 .summary-more {
   padding: 12px;
   overflow: hidden;
@@ -7551,11 +7361,7 @@ body.is-profile-view .day-panel {
   font-display: block;
 }
 
-/* Pixel art only for titles; body text stays in the original UI font. */
-:root {
-  --font-pixel-title: "Jersey 10", "Pixelify Sans", "Left2Eat Pixel", monospace;
-}
-
+/* Tokens: titulos decorativos */
 .brand h1,
 .topbar .section-heading h2,
 .section-heading h2,
@@ -7646,17 +7452,7 @@ body.is-profile-view .day-panel {
   color: rgba(135, 91, 15, 0.76);
 }
 
-/* Jerarquía tipográfica: títulos con carácter, contenido en calma. */
-:root {
-  --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --type-display: 6rem;
-  --type-page: 3rem;
-  --type-section: 1.5rem;
-  --type-card: 1.3rem;
-  --type-subtitle: 0.84rem;
-  --type-label: 0.74rem;
-}
-
+/* Tokens: escala tipografica */
 body {
   font-family: var(--font-ui);
 }
@@ -7778,13 +7574,7 @@ body {
   line-height: 1.2;
 }
 
-/* Chrome estable: paneles principales armonizados y guia derecha fija. */
-:root {
-  --app-chrome-radius: 8px;
-  --app-gutter: 24px;
-  --right-panel-width: 318px;
-}
-
+/* Layout: chrome estable */
 .sidebar,
 .topbar,
 .summary-panel {
@@ -7801,14 +7591,11 @@ body {
 }
 
 .topbar {
-  overflow: visible;
-}
-
-.topbar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
+  overflow: visible;
 }
 
 .day-heading {
@@ -8033,7 +7820,7 @@ body {
   white-space: nowrap;
 }
 
-/* Entreno e intensidad viven en la misma decision diaria. */
+/* Vistas: entrenamiento diario */
 .context-controls {
   grid-template-columns: minmax(0, 2fr) minmax(220px, 0.75fr);
 }

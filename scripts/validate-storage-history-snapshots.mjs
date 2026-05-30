@@ -44,6 +44,7 @@ function hasForbiddenPersistedKey(value) {
 }
 
 await loadScript("src/data.js");
+await loadScript("src/meal-items.js");
 await loadScript("src/storage.js");
 await loadScript("src/nutrition.js");
 await loadScript("src/diagnosis-actions.js");
@@ -196,6 +197,56 @@ assert.equal("foods" in legacyMealDay.meals[0], false, "Al mutar una comida lega
 assert.deepEqual(
   legacyMealDay.meals[0].items.map((item) => item.id),
   ["legacy-alias-item", "suggested-alias-item"]
+);
+Storage.save({
+  profile: { ...Data.DEFAULT_PROFILE },
+  foods: Data.BASE_FOODS.map((food) => ({ ...food })),
+  mealTemplates: [],
+  lastClosedDayRecovery: null,
+  days: {
+    [savedDate]: legacyMealDay
+  },
+  selectedDate: savedDate
+});
+const persistedLegacyMutation = JSON.parse(store.get(key));
+assert.ok(
+  Array.isArray(persistedLegacyMutation.days[savedDate].meals[0].items),
+  "Una comida legacy mutada debe guardarse con meal.items."
+);
+assert.equal(
+  "foods" in persistedLegacyMutation.days[savedDate].meals[0],
+  false,
+  "Una comida legacy mutada no debe guardar meal.foods."
+);
+
+const legacyFoodsOnlyState = {
+  profile: { ...Data.DEFAULT_PROFILE },
+  foods: Data.BASE_FOODS.map((food) => ({ ...food })),
+  mealTemplates: [],
+  lastClosedDayRecovery: null,
+  days: {
+    [savedDate]: {
+      date: savedDate,
+      meals: [{
+        id: "meal-save-foods-alias",
+        name: "Alias guardado",
+        foods: [{ id: "legacy-save-item", foodId: "chicken", grams: 125 }]
+      }]
+    }
+  },
+  selectedDate: savedDate
+};
+Storage.save(legacyFoodsOnlyState);
+const persistedLegacySave = JSON.parse(store.get(key));
+assert.deepEqual(
+  persistedLegacySave.days[savedDate].meals[0].items,
+  [{ id: "legacy-save-item", foodId: "chicken", grams: 125 }],
+  "Storage.save debe canonicalizar meal.foods legacy a meal.items."
+);
+assert.equal(
+  "foods" in persistedLegacySave.days[savedDate].meals[0],
+  false,
+  "Storage.save no debe persistir meal.foods legacy."
 );
 
 const legacyState = {

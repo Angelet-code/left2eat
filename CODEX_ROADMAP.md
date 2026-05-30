@@ -5,6 +5,8 @@ implementable por otro agente. El objetivo no es redisenar la app ni cambiar el
 producto visible, sino mejorar la ergonomia para Codex, reducir riesgo de
 regresiones y ordenar la estructura tecnica manteniendo vanilla HTML/CSS/JS.
 
+Estado global: fases 1-6 completadas y documentadas el 2026-05-30.
+
 ## Contexto operativo
 
 - Proyecto local sin framework, bundler ni dependencias.
@@ -36,9 +38,16 @@ Hasta que exista un script agregado de validacion, ejecutar:
 
 ```bash
 node --check src/data.js
+node --check src/meal-items.js
 node --check src/storage.js
 node --check src/nutrition.js
+node --check src/food-combinations.js
 node --check src/icons.js
+node --check src/render-utils.js
+node --check src/profile-render.js
+node --check src/food-library-render.js
+node --check src/history-render.js
+node --check src/diary-render.js
 node --check src/diagnosis-actions.js
 node --check src/app.js
 node scripts/validate-project-structure.mjs
@@ -200,13 +209,58 @@ Criterios de aceptacion:
 
 Objetivo: que `src/app.js` vuelva a ser un coordinador claro.
 
-Orden recomendado:
+Estado: completada el 2026-05-30.
 
-1. Extraer render de perfil.
-2. Extraer render de biblioteca de alimentos.
-3. Extraer render de historial.
-4. Extraer render del diario y comidas solo despues de estabilizar las fases
-   anteriores.
+La fase queda dividida en dos subfases para evitar mezclar superficies:
+
+### Fase 4A: Perfil, biblioteca e historial
+
+Estado: implementada.
+
+Incluye:
+
+- Helpers compartidos de render puro en `src/render-utils.js`.
+- Renderizadores de perfil en `src/profile-render.js`.
+- Renderizadores de biblioteca en `src/food-library-render.js`.
+- Renderizadores de historial en `src/history-render.js`.
+- `src/app.js` conserva estado, listeners, persistencia y ensamblado de datos.
+
+No reabrir 4A salvo para corregir una regresion concreta en esas superficies.
+
+### Fase 4B: Diario, comidas y paneles diarios
+
+Estado: implementada.
+
+Empieza despues de 4A, con `node scripts/validate-all.mjs` en verde.
+
+Punto de entrada: el render que sigue viviendo en `src/app.js` para la vista de
+diario. Incluye, como maximo:
+
+- contexto/hero del dia y controles de entreno/pasos,
+- comidas, items, formularios de anadir alimento, colapsado y guardado de
+  plantillas,
+- sugerencias frecuentes/contextuales y paneles de combinacion visuales,
+- panel derecho del dia: guia, diagnostico, sugerencias, numeros y foco,
+- equivalencias y bloques de resumen usados dentro del diario.
+
+Termina cuando:
+
+- el HTML de esas superficies vive en renderizadores IIFE `window.LeftEat...`
+  cargados antes de `src/app.js`,
+- los renderizadores reciben datos por parametros y no leen ni mutan `state`,
+- `src/app.js` queda como coordinador de vista, estado, eventos, persistencia,
+  seleccion UI, undo y acciones de dominio,
+- los `data-action` existentes siguen siendo el contrato de eventos,
+- `node scripts/validate-all.mjs` pasa y el flujo manual del diario funciona.
+
+Fuera de 4B:
+
+- No reorganizar ni consolidar CSS: eso empieza en Fase 5.
+- No cambiar copy, layout ni paleta salvo necesidad tecnica puntual.
+- No cambiar persistencia, `left-eat-state-v1` ni el contrato `meal.items`.
+- No mover listeners principales, `saveAndRender`, undo, confirmaciones ni
+  mutaciones de comidas fuera de `src/app.js`.
+- No convertir el proyecto a ES modules ni introducir dependencias.
 
 Reglas:
 
@@ -224,7 +278,44 @@ Criterios de aceptacion:
 - Los validadores existentes siguen pasando tras cada subfase.
 - El flujo manual de diario, alimentos, perfil e historial funciona igual.
 
+### Cierre de Fase 4
+
+Revision realizada el 2026-05-30.
+
+Implementacion validada:
+
+- 4A queda cubierta por `src/render-utils.js`, `src/profile-render.js`,
+  `src/food-library-render.js` y `src/history-render.js`.
+- 4B queda cubierta por `src/diary-render.js`, cargado en `index.html` despues
+  de `src/history-render.js` y antes de `src/diagnosis-actions.js` y
+  `src/app.js`.
+- `src/diary-render.js` expone `window.LeftEatDiaryRenderers` con:
+  `renderDayContext`, `renderMeals`, `renderSummary`, `renderMacroCards` y
+  `renderEquivalences`.
+- El render del Diario recibe datos preparados por parametros: dia, perfil,
+  resumen nutricional, alimentos, alimentos activos, plantillas, copias de
+  sets/maps de `uiState`, sugerencias calculadas y contexto de combinaciones.
+- `src/app.js` conserva estado, listeners, persistencia, `saveAndRender`, undo,
+  confirmaciones, mutaciones de comidas, seleccion UI y calculo de contexto.
+- El target visual de sugerencias frecuentes se calcula sin crear comidas; la
+  version que puede crear comida queda reservada para acciones de usuario.
+- Los contratos `data-action`, `left-eat-state-v1` y `meal.items` se mantienen.
+- En el cierre original de Fase 4 todavia no se habia iniciado la Fase 5; esa
+  fase queda completada y documentada mas abajo.
+
+Validacion de cierre:
+
+- `node scripts/validate-all.mjs` pasa completo.
+- `scripts/validate-all.mjs` incluye `node --check src/diary-render.js`.
+- `scripts/validate-ui-contracts.mjs` protege el orden de carga de
+  `src/diary-render.js`, la API `window.LeftEatDiaryRenderers`, la salida de
+  renderizadores grandes de Diario desde `src/app.js` y los contratos de 4A.
+- Smoke en navegador local sobre `http://127.0.0.1:5174/index.html`: el Diario
+  inicial renderiza hero, comida, formulario de alimento y equivalencias.
+
 ## Fase 5: Consolidacion CSS conservadora
+
+Estado: completada el 2026-05-30.
 
 Objetivo: reducir capas historicas en `src/styles.css` sin redisenar la app.
 
@@ -263,7 +354,53 @@ Criterios de aceptacion:
 - Los contratos de `validate-ui-contracts.mjs` y `validate-css-structure.mjs`
   siguen pasando.
 
+### Cierre de Fase 5
+
+Revision realizada el 2026-05-30.
+
+Implementacion validada:
+
+- `src/styles.css` queda organizado con cabeceras estables para tokens, base,
+  layout, componentes y vistas, sin capas incrementales `vN`.
+- Los tokens CSS quedan consolidados en un unico bloque `:root`.
+- Se eliminaron reglas completas ya sobrescritas para los selectores objetivo:
+  `.workspace`, `.sidebar`, `.topbar`, `.summary-panel`, `.side-nav button` y
+  `.profile-panel`.
+- `scripts/validate-css-structure.mjs` protege la nueva organizacion:
+  - exige un unico `:root`,
+  - evita que vuelvan cabeceras historicas,
+  - fija presupuestos maximos para los selectores consolidados.
+- `scripts/report-css-structure.mjs` informa 0 capas historicas tras el cierre.
+- No se han cambiado `left-eat-state-v1`, `meal.items`, compatibilidad legacy,
+  `src/app.js`, renderizadores, storage ni contratos de eventos.
+- En el cierre de Fase 5, `confirmDanger(message)` y la UX de confirmaciones
+  destructivas quedaban pendientes para Fase 6.
+
+Validacion de cierre:
+
+- `node scripts/report-css-structure.mjs` pasa y reporta:
+  - 7821 lineas CSS,
+  - 26 secciones,
+  - 0 capas historicas.
+- Repeticion consolidada en selectores objetivo:
+  - `.workspace`: 22 -> 15,
+  - `.sidebar`: 20 -> 13,
+  - `.topbar`: 20 -> 14,
+  - `.summary-panel`: 19 -> 14,
+  - `.side-nav button`: 15 -> 9,
+  - `.profile-panel`: 12 -> 7.
+- `node scripts/validate-all.mjs` pasa completo.
+- Smoke frontend con Chrome/Playwright local:
+  - desktop 1440 px sin overflow horizontal,
+  - movil 390 px sin overflow horizontal,
+  - Diario renderiza sidebar, topbar, workspace, panel derecho y balance.
+- La unica incidencia del smoke es externa al producto: Google Fonts queda
+  bloqueado por el entorno sin red (`net::ERR_NETWORK_ACCESS_DENIED`), sin
+  errores JavaScript de la app.
+
 ## Fase 6: Seguridad UX y QA visual
+
+Estado: completada el 2026-05-30.
 
 Objetivo: cerrar deuda de interaccion y hacer mas fiable la validacion frontend.
 
@@ -271,8 +408,9 @@ Cambios:
 
 - Sustituir la implementacion interna de `confirmDanger(message)` por una
   confirmacion propia de la app.
-- Mantener la firma `confirmDanger(message)` para no reescribir todos los
-  llamadores en el primer paso.
+- Mantener `confirmDanger(message)` como punto unico de entrada para no dispersar
+  la logica de confirmacion. La implementacion final puede ser asincrona si los
+  llamadores se actualizan explicitamente.
 - Conservar reglas actuales:
   - eliminar comida vacia no requiere confirmacion,
   - eliminar o vaciar comida con alimentos si requiere confirmacion,
@@ -290,6 +428,50 @@ Criterios de aceptacion:
   elimina completamente, los tests/manual QA cubren confirmar y cancelar.
 - Las acciones destructivas siguen siendo claras.
 - El flujo de deshacer no pierde confianza.
+
+### Cierre de Fase 6
+
+Revision realizada el 2026-05-30.
+
+Implementacion validada:
+
+- `confirmDanger(message)` se mantiene como punto unico de confirmacion
+  destructiva, pero ahora devuelve una `Promise<boolean>` y renderiza un dialogo
+  propio de la app.
+- No queda ningun uso real de `window.confirm` en `src/`.
+- Los llamadores destructivos de `confirmDanger` se actualizaron de forma
+  explicita con `await`:
+  - eliminar comida guardada,
+  - vaciar la unica comida cuando tiene alimentos,
+  - eliminar comida con alimentos,
+  - ocultar alimento de la biblioteca.
+- Se conservan las reglas de producto:
+  - eliminar comida vacia no abre confirmacion,
+  - eliminar o vaciar comida con alimentos exige confirmacion,
+  - deshacer sigue disponible tras quitar alimento, vaciar comida y eliminar
+    comida.
+- `scripts/validate-ui-contracts.mjs` protege que `confirmDanger` siga siendo
+  asincrono, que use el dialogo propio y que no vuelva `window.confirm`.
+- `TEAM_LOOP.md` documenta el protocolo QA visual frontend: abrir navegador
+  local, revisar consola, probar flujo afectado y revisar responsive.
+- No se han cambiado `left-eat-state-v1`, `meal.items`, storage, nutricion,
+  combinaciones ni renderizadores extraidos.
+- No se han dejado artefactos generados en `reports/`.
+
+Validacion de cierre:
+
+- `node scripts/validate-all.mjs` pasa completo.
+- Smoke frontend con Chrome/Playwright local en perfil aislado:
+  - cancelar y confirmar eliminar comida guardada,
+  - cancelar y confirmar ocultar alimento de biblioteca,
+  - cancelar y confirmar vaciar comida con alimentos,
+  - confirmar eliminar comida con alimentos,
+  - eliminar comida vacia sin dialogo,
+  - usar deshacer tras quitar alimento, vaciar comida y eliminar comida,
+  - consola sin errores JavaScript,
+  - movil 390 px sin overflow horizontal.
+- La validacion de navegador se hizo con perfil aislado para no tocar datos
+  reales de `localStorage`.
 
 ## Orden global recomendado
 
@@ -314,8 +496,9 @@ implementar solo:
 - `scripts/validate-ui-contracts.mjs` contiene asserts literales contra texto de
   `src/app.js`; al extraer funciones o cambiar strings, actualizar el contrato
   deliberadamente.
-- `src/styles.css` tiene muchas capas aditivas. No limpiar CSS a ojo: usar
-  `report-css-structure`, navegador local y cambios pequenos.
+- `src/styles.css` ya no debe recuperar capas historicas. Usar
+  `report-css-structure`, `validate-css-structure` y navegador local para
+  cualquier cambio visual posterior.
 - Si Git muestra warnings de line endings, resolver con `.gitattributes` antes
   de grandes refactors para evitar diffs ruidosos.
 - Si hay cambios locales previos en archivos tocados, leer el diff antes de

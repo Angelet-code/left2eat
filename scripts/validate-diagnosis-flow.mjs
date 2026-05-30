@@ -9,6 +9,7 @@ async function loadScript(path) {
 }
 
 await loadScript("src/data.js");
+await loadScript("src/meal-items.js");
 await loadScript("src/nutrition.js");
 await loadScript("src/diagnosis-actions.js");
 

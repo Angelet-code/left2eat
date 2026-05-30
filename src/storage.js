@@ -1,5 +1,6 @@
 (function () {
   const KEY = "left-eat-state-v1";
+  const MealItems = window.LeftEatMealItems;
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -230,6 +231,34 @@
     };
   }
 
+  function canonicalizeMealForSave(meal) {
+    if (!meal || typeof meal !== "object") return meal;
+    const normalized = {
+      ...meal,
+      items: MealItems.list(meal)
+    };
+    delete normalized.foods;
+    return normalized;
+  }
+
+  function canonicalizeDayForSave(day) {
+    if (!day || typeof day !== "object") return day;
+    return {
+      ...day,
+      meals: Array.isArray(day.meals)
+        ? day.meals.map(canonicalizeMealForSave)
+        : day.meals
+    };
+  }
+
+  function canonicalizeStateForSave(state) {
+    const persisted = clone(state);
+    persisted.days = Object.fromEntries(
+      Object.entries(persisted.days || {}).map(([date, day]) => [date, canonicalizeDayForSave(day)])
+    );
+    return persisted;
+  }
+
   function load() {
     const fallback = defaultState();
     try {
@@ -254,7 +283,7 @@
   }
 
   function save(state) {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.setItem(KEY, JSON.stringify(canonicalizeStateForSave(state)));
   }
 
   window.LeftEatStorage = {
