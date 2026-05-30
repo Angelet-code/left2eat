@@ -46,12 +46,34 @@
     return Math.max(1.2, Math.min(1.9, 1.25 + trainingBoost + stepBoost));
   }
 
-  function dayContext(day) {
+  function defaultDayContext() {
     return {
-      training: day?.context?.training || "none",
-      intensity: day?.context?.intensity || "normal",
-      steps: day?.context?.steps
+      training: "none",
+      intensity: "normal",
+      steps: ""
     };
+  }
+
+  function normalizeDayContext(context = {}) {
+    const normalized = {
+      ...defaultDayContext(),
+      ...(context || {})
+    };
+    const validTraining = new Set([...(window.LeftEatData.TRAINING_TYPES || []).map((item) => item.id), "mixed"]);
+    const validIntensity = new Set((window.LeftEatData.INTENSITY_LEVELS || []).map((item) => item.id));
+
+    if (!validTraining.has(normalized.training)) {
+      normalized.training = "none";
+    }
+    if (!validIntensity.has(normalized.intensity) || normalized.training === "none") {
+      normalized.intensity = "normal";
+    }
+
+    return normalized;
+  }
+
+  function dayContext(day) {
+    return normalizeDayContext(day?.context);
   }
 
   function calculateProteinPerKg(profile, context) {
@@ -697,6 +719,7 @@
     foodMacros,
     formatNumber,
     normalize,
+    normalizeDayContext,
     number,
     remaining,
     round,

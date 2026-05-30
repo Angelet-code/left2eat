@@ -49,9 +49,22 @@ left-eat-state-v1
 - Mantener `src/app.js` como orquestador, no como sitio para duplicar calculos nutricionales.
 - Si se toca frontend, verificar en navegador local y revisar consola.
 
+## Ruta Rapida Para Cambios Pequenos
+
+1. Leer el contexto afectado.
+2. Tocar lo minimo necesario.
+3. Ejecutar `node scripts/validate-all.mjs`.
+4. Usar `TEAM_LOOP.md` completo solo para ciclos autonomos de producto.
+
 ## Validacion
 
-Ejecutar antes de cerrar cambios:
+Comando principal antes de cerrar cambios:
+
+```bash
+node scripts/validate-all.mjs
+```
+
+Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js

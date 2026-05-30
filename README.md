@@ -42,7 +42,13 @@ Por compatibilidad con datos guardados, cada comida sigue persistiendo sus alime
 
 ## Desarrollo
 
-No hay framework, bundler ni dependencias nuevas. Para validar sintaxis:
+No hay framework, bundler ni dependencias nuevas. Comando recomendado para validar antes de cerrar cambios:
+
+```bash
+node scripts/validate-all.mjs
+```
+
+Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js

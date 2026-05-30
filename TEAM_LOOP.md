@@ -301,7 +301,13 @@ Estas areas ya tienen senales de implementacion en el codigo. Antes de elegirlas
 
 ## Validacion Obligatoria
 
-Ejecutar siempre:
+Ejecutar siempre el comando principal:
+
+```bash
+node scripts/validate-all.mjs
+```
+
+Lista expandida equivalente para depuracion:
 
 ```bash
 node --check src/data.js

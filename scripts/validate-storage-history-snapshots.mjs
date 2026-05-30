@@ -50,6 +50,7 @@ await loadScript("src/diagnosis-actions.js");
 
 const Data = globalThis.LeftEatData;
 const Storage = globalThis.LeftEatStorage;
+const Nutrition = globalThis.LeftEatNutrition;
 const DiagnosisActions = globalThis.LeftEatDiagnosisActions;
 const key = "left-eat-state-v1";
 const savedDate = "2026-05-28";
@@ -151,6 +152,30 @@ assert.equal(loaded.days[savedDate].nutritionSnapshot.total.protein, 49.6);
 assert.equal(loaded.mealTemplates[0].items[0].foodId, "chicken");
 assert.equal(loaded.lastClosedDayRecovery.meals[0].items[0].foodSnapshot.name, "Pavo");
 assert.equal(hasForbiddenPersistedKey(loaded), false);
+
+const invalidContextSummary = Nutrition.summarizeDay({
+  date: savedDate,
+  context: { training: "none", intensity: "hard", steps: "8000" },
+  meals: []
+}, Data.DEFAULT_PROFILE, Data.BASE_FOODS);
+assert.equal(invalidContextSummary.targets.context.training, "none");
+assert.equal(invalidContextSummary.targets.context.intensity, "normal");
+
+const unknownTrainingSummary = Nutrition.summarizeDay({
+  date: savedDate,
+  context: { training: "marathon", intensity: "light", steps: "" },
+  meals: []
+}, Data.DEFAULT_PROFILE, Data.BASE_FOODS);
+assert.equal(unknownTrainingSummary.targets.context.training, "none");
+assert.equal(unknownTrainingSummary.targets.context.intensity, "normal");
+
+const mixedTrainingSummary = Nutrition.summarizeDay({
+  date: savedDate,
+  context: { training: "mixed", intensity: "hard", steps: 11000 },
+  meals: []
+}, Data.DEFAULT_PROFILE, Data.BASE_FOODS);
+assert.equal(mixedTrainingSummary.targets.context.training, "mixed");
+assert.equal(mixedTrainingSummary.targets.context.intensity, "hard");
 
 const legacyMealDay = {
   date: savedDate,
